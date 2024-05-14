@@ -45,7 +45,7 @@ Para rodar o backend do BitBeak em sua máquina, você precisará dos seguintes 
   A API estará disponível em http://localhost:????.  
 
 **Contato**  
-  Gustavo Henrique Alves - gustavo@email  
+  Gustavo Henrique Alves - he.gustavoalves@gmail.com
   Marcos Vinicius Alves de Souza - sbmarcos777@gmail.com  
 
 **Agradecimentos**  
