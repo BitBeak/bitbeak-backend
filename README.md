@@ -23,7 +23,11 @@ Para rodar o backend do BitBeak em sua máquina, você precisará dos seguintes 
  
 3. **Configurar Banco de Dados**  
   - Configure a string de conexão no arquivo appsettings.json:  
-  ``` "ConnectionStrings": { "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=BitBeakDB;Trusted_Connection=True;MultipleActiveResultSets=true" } ```  
+  ```
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=BitBeakDB;Trusted_Connection=True;MultipleActiveResultSets=true"
+  }
+  ```  
   - Aplique as migrações para o banco de dados:
   ```dotnet ef database update```  
 
