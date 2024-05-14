@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34714.143
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BitBeakAPI", "BitBeakAPI.csproj", "{09C7E56F-033A-4D7B-9963-67FD35C75D79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{09C7E56F-033A-4D7B-9963-67FD35C75D79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09C7E56F-033A-4D7B-9963-67FD35C75D79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09C7E56F-033A-4D7B-9963-67FD35C75D79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09C7E56F-033A-4D7B-9963-67FD35C75D79}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A803A731-60A4-4836-A5C8-5339A93E4F26}
+	EndGlobalSection
+EndGlobal
