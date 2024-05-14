@@ -13,7 +13,7 @@ Para rodar o backend do BitBeak em sua máquina, você precisará dos seguintes 
 
 ### Passo a passo para configurar o ambiente de desenvolvimento:  
 
-1. **Clonar o Repositório**
+1. **Clonar o Repositório**  
   Clone o repositório em sua máquina local usando o seguinte comando:  
   ```bash git clone https://github.com/seu-usuario/bitbeak-backend.git```
 
