@@ -91,6 +91,14 @@ namespace BitBeakAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Usuario>> PostUsuario(Usuario objUsuario)
         {
+            // Verificar se o e-mail já existe
+            var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email);
+
+            if (objUsuarioExistente != null)
+            {
+                return Conflict("Já existe uma conta com este e-mail.");
+            }
+
             // Criptografar a senha fornecida pelo usuário antes de salvar
             if (!string.IsNullOrEmpty(objUsuario.Senha))
             {
@@ -110,6 +118,13 @@ namespace BitBeakAPI.Controllers
             if (intId != objUsuario.IdUsuario)
             {
                 return BadRequest();
+            }
+
+            // Verificar se o e-mail já existe para outro usuário
+            var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email && u.IdUsuario != intId);
+            if (objUsuarioExistente != null)
+            {
+                return Conflict("Já existe uma conta com este e-mail.");
             }
 
             // Criptografar a senha fornecida pelo usuário antes de atualizar
@@ -161,7 +176,7 @@ namespace BitBeakAPI.Controllers
         }
 
         [HttpPost("TokenResetarSenha")]
-        public async Task<IActionResult> TokenResetarSenha([FromBody] ModelResetPassword objModelResetPassword)
+        public async Task<IActionResult> TokenResetarSenha([FromBody] ModelResetSenha objModelResetPassword)
         {
             var objUsuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.PasswordResetToken == objModelResetPassword.Token);
             if (objUsuario == null || objUsuario.PasswordResetTokenExpiry < DateTime.UtcNow)

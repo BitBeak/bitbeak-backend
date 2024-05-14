@@ -135,3 +135,4 @@ F:\BitBeak\BitBeakAPI\obj\Debug\net8.0\refint\BitBeakAPI.dll
 F:\BitBeak\BitBeakAPI\obj\Debug\net8.0\BitBeakAPI.pdb
 F:\BitBeak\BitBeakAPI\obj\Debug\net8.0\BitBeakAPI.genruntimeconfig.cache
 F:\BitBeak\BitBeakAPI\obj\Debug\net8.0\ref\BitBeakAPI.dll
+F:\BitBeak\BitBeakAPI\obj\Debug\net8.0\BitBeakAPI.sourcelink.json
