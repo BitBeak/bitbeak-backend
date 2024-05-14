@@ -15,13 +15,17 @@ Para rodar o backend do BitBeak em sua máquina, você precisará dos seguintes 
 
 1. **Clonar o Repositório**  
   Clone o repositório em sua máquina local usando o seguinte comando:  
-  ```bash git clone https://github.com/seu-usuario/bitbeak-backend.git```
+  ```
+  bash git clone https://github.com/seu-usuario/bitbeak-backend.git
+  ```
 
-2. **Instalar Dependências**  
+3. **Instalar Dependências**  
   No terminal, navegue até a pasta do projeto clonado e execute:
-  ```dotnet restore ```  
+  ```
+  dotnet restore
+  ```  
  
-3. **Configurar Banco de Dados**  
+5. **Configurar Banco de Dados**  
   - Configure a string de conexão no arquivo appsettings.json:  
   ```
   "ConnectionStrings": {
@@ -29,11 +33,15 @@ Para rodar o backend do BitBeak em sua máquina, você precisará dos seguintes 
   }
   ```  
   - Aplique as migrações para o banco de dados:
-  ```dotnet ef database update```  
+  ```
+  dotnet ef database update
+  ```  
 
 **Uso**  
   Para iniciar o servidor, execute:
-  ```dotnet run```  
+  ```
+  dotnet run
+  ```  
   A API estará disponível em http://localhost:????.  
 
 **Contato**  
