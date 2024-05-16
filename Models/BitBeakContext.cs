@@ -8,6 +8,12 @@ namespace BitBeakAPI.Models
         {
         }
 
-        public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<ModelUsuario> Usuarios { get; set; }
+        public DbSet<ModelTrilha> Trilhas { get; set; }
+        public DbSet<ModelQuestao> Questoes { get; set; }
+        public DbSet<ModelNivelTrilha> NiveisTrilha { get; set; }
+        public DbSet<ModelUsuarioTrilhaProgresso> UsuariosTrilhasProgresso { get; set; }
+        public DbSet<OpcaoResposta> OpcoesRespostas { get; set; }
+        public DbSet<Lacuna> Lacunas { get; set; }
     }
 }
