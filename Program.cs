@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BitBeakAPI.Models;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,13 @@ logger.LogInformation($"SMTP User: {smtpUser}");
 logger.LogInformation($"SMTP Pass: {smtpPass}");
 
 // Adicionar serviços ao contêiner
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
 builder.Services.AddDbContext<BitBeakContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

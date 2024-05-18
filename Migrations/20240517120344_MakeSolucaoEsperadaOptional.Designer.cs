@@ -4,6 +4,7 @@ using BitBeakAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    partial class BitBeakContextModelSnapshot : ModelSnapshot
+    [Migration("20240517120344_MakeSolucaoEsperadaOptional")]
+    partial class MakeSolucaoEsperadaOptional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,11 +85,13 @@ namespace BitBeakAPI.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int?>("IdNivel")
+                    b.Property<int>("IdNivel")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("NivelIdNivel")
                         .HasColumnType("int");
 
                     b.Property<string>("SolucaoEsperada")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Tipo")
@@ -94,7 +99,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasKey("IdQuestao");
 
-                    b.HasIndex("IdNivel");
+                    b.HasIndex("NivelIdNivel");
 
                     b.ToTable("Questoes");
                 });
@@ -187,7 +192,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasIndex("IdUsuario");
 
-                    b.ToTable("ModelUsuarioTrilhaProgresso");
+                    b.ToTable("UsuariosTrilhasProgresso");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.OpcaoResposta", b =>
@@ -212,7 +217,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasIndex("IdQuestao");
 
-                    b.ToTable("OpcoesResposta");
+                    b.ToTable("OpcoesRespostas");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.Lacuna", b =>
@@ -241,7 +246,7 @@ namespace BitBeakAPI.Migrations
                 {
                     b.HasOne("BitBeakAPI.Models.ModelNivelTrilha", "Nivel")
                         .WithMany("Questoes")
-                        .HasForeignKey("IdNivel");
+                        .HasForeignKey("NivelIdNivel");
 
                     b.Navigation("Nivel");
                 });

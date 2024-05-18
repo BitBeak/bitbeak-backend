@@ -4,6 +4,7 @@ using BitBeakAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    partial class BitBeakContextModelSnapshot : ModelSnapshot
+    [Migration("20240517131311_PutTrilhaAtualizado30")]
+    partial class PutTrilhaAtualizado30
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,7 +190,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasIndex("IdUsuario");
 
-                    b.ToTable("ModelUsuarioTrilhaProgresso");
+                    b.ToTable("UsuariosTrilhasProgresso");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.OpcaoResposta", b =>
@@ -212,7 +215,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasIndex("IdQuestao");
 
-                    b.ToTable("OpcoesResposta");
+                    b.ToTable("OpcoesRespostas");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.Lacuna", b =>

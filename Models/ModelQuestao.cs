@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace BitBeakAPI.Models
@@ -11,7 +11,6 @@ namespace BitBeakAPI.Models
         Lacuna,
         Codificacao
     }
-
     public class ModelQuestao
     {
         [Key]
@@ -19,23 +18,21 @@ namespace BitBeakAPI.Models
 
         [Required]
         [StringLength(1000)]
-        public string Enunciado { get; set; }
+        public string Enunciado { get; set; } = string.Empty;
 
         [Required]
         public TipoQuestao Tipo { get; set; }
 
-        [Required]
         [ForeignKey("NivelTrilha")]
-        public int IdNivel { get; set; }
+        public int? IdNivel { get; set; }
 
-        [JsonIgnore]
-        public ModelNivelTrilha Nivel { get; set; }
+        public ModelNivelTrilha? Nivel { get; set; }
 
         public ICollection<OpcaoResposta> Opcoes { get; set; } = new List<OpcaoResposta>();
 
         public ICollection<Lacuna> Lacunas { get; set; } = new List<Lacuna>();
 
-        public string? SolucaoEsperada { get; set; }
+        public string SolucaoEsperada { get; set; } = string.Empty;
     }
 
     public class OpcaoResposta
@@ -49,14 +46,11 @@ namespace BitBeakAPI.Models
         [Required]
         public bool Correta { get; set; }
 
-        [Required]
         [ForeignKey("Questao")]
         public int IdQuestao { get; set; }
 
-        [JsonIgnore]
-        public ModelQuestao Questao { get; set; }
+        public ModelQuestao? Questao { get; set; }
     }
-
     public class Lacuna
     {
         [Key]
@@ -68,11 +62,9 @@ namespace BitBeakAPI.Models
         [Required]
         public string ColunaB { get; set; }
 
-        [Required]
         [ForeignKey("Questao")]
         public int IdQuestao { get; set; }
 
-        [JsonIgnore]
         public ModelQuestao Questao { get; set; }
     }
 }
