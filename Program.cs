@@ -33,10 +33,10 @@ builder.Services.AddDbContext<BitBeakContext>(options =>
 
 // Registrar o serviço de envio de email
 builder.Services.AddTransient<EmailService>(provider => new EmailService(
-    smtpServer,
-    int.Parse(smtpPort),
-    smtpUser,
-    smtpPass
+    smtpServer!,
+    int.Parse(smtpPort!),
+    smtpUser!,
+    smtpPass!
 ));
 
 // Adicionar Swagger
