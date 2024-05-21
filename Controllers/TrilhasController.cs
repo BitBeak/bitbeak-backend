@@ -30,106 +30,114 @@ namespace BitBeakAPI.Controllers
 
         // GET: api/Trilhas/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ModelTrilha>> GetTrilha(int id)
+        public async Task<ActionResult<ModelTrilha>> GetTrilha(int intId)
         {
-            var trilha = await _context.Trilhas
+            ModelTrilha? objModelTrilha = new();
+            objModelTrilha = await _context.Trilhas
                 .Include(t => t.Niveis)
                 .ThenInclude(n => n.Questoes)
-                .FirstOrDefaultAsync(t => t.IdTrilha == id);
+                .FirstOrDefaultAsync(t => t.IdTrilha == intId);
 
-            if (trilha == null)
+            if (objModelTrilha == null)
             {
                 return NotFound();
             }
 
-            return trilha;
+            return objModelTrilha;
         }
 
         // POST: api/Trilhas
         [HttpPost]
-        public async Task<ActionResult<ModelTrilha>> PostTrilha(ModelTrilha trilha)
+        public async Task<ActionResult<ModelTrilha>> PostTrilha(ModelTrilha objModelTrilha)
         {
-            _context.Trilhas.Add(trilha);
+            _context.Trilhas.Add(objModelTrilha);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTrilha), new { id = trilha.IdTrilha }, trilha);
+            return CreatedAtAction(nameof(GetTrilha), new { id = objModelTrilha.IdTrilha }, objModelTrilha);
         }
 
         // PUT: api/Trilhas/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTrilha(int id, ModelTrilha trilha)
+        [HttpPut("{intId}")]
+        public async Task<IActionResult> PutTrilha(int intId, ModelTrilha objModelTrilha)
         {
-            if (id != trilha.IdTrilha)
-            {
-                return BadRequest();
-            }
-
-            // Carregar a trilha existente com os níveis e questões
-            var trilhaExistente = await _context.Trilhas
-                .Include(t => t.Niveis)
-                .ThenInclude(n => n.Questoes)
-                .FirstOrDefaultAsync(t => t.IdTrilha == id);
-
-            if (trilhaExistente == null)
-            {
-                return NotFound();
-            }
-
-            // Atualizar os campos Nome e Descricao somente se fornecidos
-            if (!string.IsNullOrEmpty(trilha.Nome))
-            {
-                trilhaExistente.Nome = trilha.Nome;
-            }
-
-            if (!string.IsNullOrEmpty(trilha.Descricao))
-            {
-                trilhaExistente.Descricao = trilha.Descricao;
-            }
-
-            // Atualizar os níveis
-            foreach (var nivel in trilha.Niveis)
-            {
-                var nivelExistente = trilhaExistente.Niveis.FirstOrDefault(n => n.IdNivel == nivel.IdNivel);
-                if (nivelExistente != null)
-                {
-                    nivelExistente.Nivel = nivel.Nivel;
-                    nivelExistente.Questoes = nivel.Questoes;
-                }
-                else
-                {
-                    // Configurar a propriedade Trilha corretamente
-                    nivel.Trilha = trilhaExistente;
-                    trilhaExistente.Niveis.Add(nivel);
-                }
-            }
-
-            _context.Entry(trilhaExistente).State = EntityState.Modified;
+            ModelTrilha? objTrilhaExistente = new();
 
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                if (!TrilhaExists(id))
+                if (intId != objModelTrilha.IdTrilha)
+                {
+                    return BadRequest();
+                }
+
+                // Carregar a trilha existente com os níveis e questões
+                objTrilhaExistente = await _context.Trilhas
+                    .Include(t => t.Niveis)
+                    .ThenInclude(n => n.Questoes)
+                    .FirstOrDefaultAsync(t => t.IdTrilha == intId);
+
+                if (objTrilhaExistente == null)
                 {
                     return NotFound();
                 }
-                else
+
+                // Atualizar os campos Nome e Descricao somente se fornecidos
+                if (!string.IsNullOrEmpty(objModelTrilha.Nome))
                 {
-                    // Adicionar log de erro detalhado para ajudar no diagnóstico
-                    Console.WriteLine($"Erro de concorrência: {ex.Message}");
-                    Console.WriteLine($"Detalhes do erro: {ex.InnerException?.Message}");
-                    throw;
+                    objTrilhaExistente.Nome = objModelTrilha.Nome;
                 }
+
+                if (!string.IsNullOrEmpty(objModelTrilha.Descricao))
+                {
+                    objTrilhaExistente.Descricao = objModelTrilha.Descricao;
+                }
+
+                // Atualizar os níveis
+                foreach (ModelNivelTrilha objNivel in objModelTrilha.Niveis)
+                {
+                    ModelNivelTrilha? objNivelExistente = new();
+
+                    objNivelExistente = objTrilhaExistente.Niveis.FirstOrDefault(n => n.IdNivel == objNivel.IdNivel);
+
+                    if (objNivelExistente != null)
+                    {
+                        objNivelExistente.Nivel = objNivel.Nivel;
+                        objNivelExistente.Questoes = objNivel.Questoes;
+                    }
+                    else
+                    {
+                        // Configurar a propriedade Trilha corretamente
+                        objNivel.Trilha = objTrilhaExistente;
+                        objTrilhaExistente.Niveis.Add(objNivel);
+                    }
+                }
+
+                _context.Entry(objTrilhaExistente).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    if (!TrilhaExists(intId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        // Adicionar log de erro detalhado para ajudar no diagnóstico
+                        Console.WriteLine($"Erro de concorrência: {ex.Message}");
+                        Console.WriteLine($"Detalhes do erro: {ex.InnerException?.Message}");
+                        throw;
+                    }
+                }
+
+                return NoContent();
             }
-
-            return NoContent();
-        }
-
-        private bool TrilhaExists(int id)
-        {
-            return _context.Trilhas.Any(e => e.IdTrilha == id);
+            catch (Exception  ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE: api/Trilhas/5
@@ -146,6 +154,11 @@ namespace BitBeakAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private bool TrilhaExists(int id)
+        {
+            return _context.Trilhas.Any(e => e.IdTrilha == id);
         }
     }
 }

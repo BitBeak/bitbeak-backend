@@ -12,6 +12,8 @@ namespace BitBeakAPI.Models
         [Required]
         public int Nivel { get; set; }
 
+        public string NivelName { get; set; }   = string.Empty;
+
         [Required]
         [ForeignKey("Trilha")]
         public int IdTrilha { get; set; }
