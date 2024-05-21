@@ -12,6 +12,7 @@
             public DbSet<Lacuna> Lacunas { get; set; }
             public DbSet<ModelNivelUsuario> NiveisUsuario { get; set; }
             public DbSet<ModelUsuarioTrilhaProgresso> UsuarioTrilhaProgresso { get; set; }
+            public DbSet<ModelQuestaoRespondida> QuestoesRespondidas { get; set; }
 
         public BitBeakContext(DbContextOptions<BitBeakContext> options) : base(options)
             {

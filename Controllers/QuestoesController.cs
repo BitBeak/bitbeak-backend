@@ -22,37 +22,34 @@ namespace BitBeakAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ModelQuestao>>> ObterListaQuestoes()
         {
-            return await _context.Questoes.Include(q => q.Opcoes).Include(q => q.Lacunas).ToListAsync();
+            return await _context.Questoes
+                .Include(q => q.Opcoes)
+                .Include(q => q.Lacunas)
+                .ToListAsync();
         }
 
         // GET: api/Questoes/5
-        [HttpGet("{intId}")]
-        public async Task<ActionResult<ModelQuestao>> ObterListaQuestao(int intId)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ModelQuestao>> ObterListaQuestao(int id)
         {
-            ModelQuestao? objQuestao = new();
+            var questao = await _context.Questoes
+                .Include(q => q.Opcoes)
+                .Include(q => q.Lacunas)
+                .FirstOrDefaultAsync(q => q.IdQuestao == id);
 
-            try
+            if (questao == null)
             {
-                objQuestao = await _context.Questoes.Include(q => q.Opcoes).Include(q => q.Lacunas).FirstOrDefaultAsync(q => q.IdQuestao == intId);
-
-                if (objQuestao == null)
-                {
-                    return NotFound();
-                }
-
-                return objQuestao;
+                return NotFound();
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            
+
+            return questao;
         }
 
         [HttpPost]
         public async Task<ActionResult<ModelQuestao>> AdicionarQuestao(ModelQuestao objModelQuestao)
         {
             List<OpcaoResposta> objOpcoes = new();
+            List<Lacuna> objLacunas = new();
             ModelNivelTrilha? objNivel = new();
 
             try
@@ -72,7 +69,10 @@ namespace BitBeakAPI.Controllers
 
                 // Adicionar a questão ao contexto para obter um ID
                 objOpcoes = objModelQuestao.Opcoes.ToList(); // Clonar as opções para adicionar depois
+                objLacunas = objModelQuestao.Lacunas.ToList(); // Clonar as lacunas para adicionar depois
+
                 objModelQuestao.Opcoes.Clear(); // Limpar as opções antes de adicionar a questão
+                objModelQuestao.Lacunas.Clear(); // Limpar as lacunas antes de adicionar a questão
 
                 _context.Questoes.Add(objModelQuestao);
                 await _context.SaveChangesAsync();
@@ -86,10 +86,20 @@ namespace BitBeakAPI.Controllers
                     _context.OpcoesResposta.Add(objOpcao);
                 }
 
+                // Atribuir a questão às lacunas após ter um ID
+                foreach (Lacuna objLacuna in objLacunas)
+                {
+                    objLacuna.IdLacuna = 0;
+                    objLacuna.IdQuestao = objModelQuestao.IdQuestao;
+                    objLacuna.Questao = objModelQuestao;
+                    _context.Lacunas.Add(objLacuna);
+                }
+
                 await _context.SaveChangesAsync();
 
-                // Adicionar as opções de volta à questão para retorno
+                // Adicionar as opções e lacunas de volta à questão para retorno
                 objModelQuestao.Opcoes = objOpcoes;
+                objModelQuestao.Lacunas = objLacunas;
 
                 return CreatedAtAction(nameof(ObterListaQuestao), new { id = objModelQuestao.IdQuestao }, objModelQuestao);
             }
@@ -99,148 +109,119 @@ namespace BitBeakAPI.Controllers
             }
         }
 
-        [HttpPut("{intId}")]
-        public async Task<IActionResult> PutQuestao(int intId, ModelQuestao objModelQuestao)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutQuestao(int id, ModelQuestao objModelQuestao)
         {
+            if (id != objModelQuestao.IdQuestao)
+            {
+                return BadRequest();
+            }
+
+            var questaoExistente = await _context.Questoes
+                .Include(q => q.Opcoes)
+                .Include(q => q.Lacunas)
+                .FirstOrDefaultAsync(q => q.IdQuestao == id);
+
+            if (questaoExistente == null)
+            {
+                return NotFound();
+            }
+
+            questaoExistente.Enunciado = objModelQuestao.Enunciado ?? questaoExistente.Enunciado;
+            questaoExistente.Tipo = objModelQuestao.Tipo;
+            questaoExistente.SolucaoEsperada = objModelQuestao.SolucaoEsperada ?? questaoExistente.SolucaoEsperada;
+
+            // Atualizar as opções
+            questaoExistente.Opcoes.Clear();
+            foreach (OpcaoResposta objOpcao in objModelQuestao.Opcoes)
+            {
+                questaoExistente.Opcoes.Add(objOpcao);
+            }
+
+            // Atualizar as lacunas
+            questaoExistente.Lacunas.Clear();
+            foreach (Lacuna objLacuna in objModelQuestao.Lacunas)
+            {
+                objLacuna.Questao = questaoExistente;
+                questaoExistente.Lacunas.Add(objLacuna);
+            }
+
             try
             {
-                if (intId != objModelQuestao.IdQuestao)
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!QuestaoExists(id))
                 {
-                    return BadRequest();
-                }
-
-                ModelQuestao? objQuestaoExistente = await _context.Questoes
-                    .Include(q => q.Opcoes)
-                    .Include(q => q.Lacunas)
-                    .FirstOrDefaultAsync(q => q.IdQuestao == intId);
-
-                if (objQuestaoExistente != null)
-                {
-                    objQuestaoExistente.Enunciado = objModelQuestao.Enunciado ?? objQuestaoExistente.Enunciado;
-                    objQuestaoExistente.Tipo = objModelQuestao.Tipo;
-                    objQuestaoExistente.SolucaoEsperada = objModelQuestao.SolucaoEsperada ?? objQuestaoExistente.SolucaoEsperada;
-
-                    // Atualizar as opções
-                    objQuestaoExistente.Opcoes.Clear();
-                    foreach (OpcaoResposta objOpcao in objModelQuestao.Opcoes)
-                    {
-                        objQuestaoExistente.Opcoes.Add(objOpcao);
-                    }
-
-                    // Atualizar as lacunas
-                    objQuestaoExistente.Lacunas.Clear();
-                    foreach (Lacuna objLacuna in objModelQuestao.Lacunas)
-                    {
-                        objLacuna.Questao = objQuestaoExistente;
-                        objQuestaoExistente.Lacunas.Add(objLacuna);
-                    }
-
-                    try
-                    {
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (!QuestaoExists(intId))
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
+                    return NotFound();
                 }
                 else
                 {
-                    return NotFound();
+                    throw;
                 }
+            }
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return NoContent();
         }
 
         // PATCH: api/Questoes/{questaoId}/Nivel/{nivelId}
-        [HttpPatch("{intQuestaoId}/Nivel/{nivelId}")]
-        public async Task<IActionResult> AdicionarQuestaoEmNivel(int intQuestaoId, int intNivelId)
+        [HttpPatch("{questaoId}/Nivel/{nivelId}")]
+        public async Task<IActionResult> AdicionarQuestaoEmNivel(int questaoId, int nivelId)
         {
-            ModelQuestao? objModelQuestao = new();
-            ModelNivelTrilha? objModelNivel = new();
+            var questao = await _context.Questoes.FindAsync(questaoId);
+            if (questao == null)
+            {
+                return NotFound("Questão não encontrada");
+            }
+
+            var nivel = await _context.NiveisTrilha.FindAsync(nivelId);
+            if (nivel == null)
+            {
+                return NotFound("Nível não encontrado");
+            }
+
+            questao.IdNivel = nivelId;
+            questao.Nivel = nivel;
 
             try
             {
-                objModelQuestao = await _context.Questoes.FindAsync(intQuestaoId);
-                if (objModelQuestao == null)
-                {
-                    return NotFound("Questão não encontrada");
-                }
-
-                objModelNivel = await _context.NiveisTrilha.FindAsync(intNivelId);
-                if (objModelNivel == null)
-                {
-                    return NotFound("Nível não encontrado");
-                }
-
-                objModelQuestao.IdNivel = intNivelId;
-                objModelQuestao.Nivel = objModelNivel;
-
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!QuestaoExists(intQuestaoId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-
-                return NoContent();
+                await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException)
             {
-                return BadRequest(ex.Message);
-            }
-            
-        }
-
-        // DELETE: api/Questoes/5
-        [HttpDelete("{intId}")]
-        public async Task<IActionResult> DeleteQuestao(int intId)
-        {
-            ModelQuestao? objQuestao = new();
-
-            try
-            {
-                objQuestao = await _context.Questoes.FindAsync(intId);
-                if (objQuestao == null)
+                if (!QuestaoExists(questaoId))
                 {
                     return NotFound();
                 }
-
-                _context.Questoes.Remove(objQuestao);
-                await _context.SaveChangesAsync();
-
-                return NoContent();
+                else
+                {
+                    throw;
+                }
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            return NoContent();
         }
 
-        private bool QuestaoExists(int intId)
+        // DELETE: api/Questoes/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteQuestao(int id)
         {
-            return _context.Questoes.Any(e => e.IdQuestao == intId);
+            var questao = await _context.Questoes.FindAsync(id);
+            if (questao == null)
+            {
+                return NotFound();
+            }
+
+            _context.Questoes.Remove(questao);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool QuestaoExists(int id)
+        {
+            return _context.Questoes.Any(e => e.IdQuestao == id);
         }
     }
 }

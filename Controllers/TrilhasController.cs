@@ -153,13 +153,16 @@ namespace BitBeakAPI.Controllers
         }
 
         // Função para entrar no nível e obter uma questão aleatória
-        [HttpGet("Trilhas/{idTrilha}/Niveis/{nivel}/ObterQuestaoAleatoria")]
-        public async Task<ActionResult<ModelQuestao>> ObterQuestaoAleatoria(int idTrilha, int nivel)
+        [HttpGet("Trilhas/{idTrilha}/Niveis/{nivel}/ObterQuestaoAleatoria/{idUsuario}")]
+        public async Task<ActionResult<ModelQuestao>> ObterQuestaoAleatoria(int idTrilha, int nivel, int idUsuario)
         {
             var trilha = await _context.Trilhas
                 .Include(t => t.Niveis)
                 .ThenInclude(n => n.Questoes)
                 .ThenInclude(q => q.Opcoes)
+                .Include(t => t.Niveis)
+                .ThenInclude(n => n.Questoes)
+                .ThenInclude(q => q.Lacunas)
                 .FirstOrDefaultAsync(t => t.IdTrilha == idTrilha);
 
             if (trilha == null)
@@ -174,7 +177,13 @@ namespace BitBeakAPI.Controllers
                 return NotFound();
             }
 
+            var questoesRespondidas = await _context.QuestoesRespondidas
+                .Where(qr => qr.IdUsuario == idUsuario)
+                .Select(qr => qr.IdQuestao)
+                .ToListAsync();
+
             var questaoAleatoria = nivelTrilha.Questoes
+                .Where(q => !questoesRespondidas.Contains(q.IdQuestao))
                 .OrderBy(q => Guid.NewGuid())
                 .FirstOrDefault();
 
@@ -186,13 +195,13 @@ namespace BitBeakAPI.Controllers
             return questaoAleatoria;
         }
 
-        // Função para verificar a resposta do usuário
         [HttpPost("VerificarResposta")]
         public async Task<ActionResult<VerificarRespostaResponse>> VerificarResposta(VerificarRespostaRequest request)
         {
             var questao = await _context.Questoes
                 .Include(q => q.Opcoes)
                 .Include(q => q.Nivel)
+                .Include(q => q.Lacunas)
                 .FirstOrDefaultAsync(q => q.IdQuestao == request.IdQuestao);
 
             if (questao == null)
@@ -247,6 +256,14 @@ namespace BitBeakAPI.Controllers
                 trilhaProgresso.Erros++;
             }
 
+            // Adiciona a questão respondida à tabela de questões respondidas
+            var questaoRespondida = new ModelQuestaoRespondida
+            {
+                IdUsuario = request.IdUsuario,
+                IdQuestao = request.IdQuestao
+            };
+            _context.QuestoesRespondidas.Add(questaoRespondida);
+
             if (trilhaProgresso.ExperienciaUsuario >= 5)
             {
                 // Concluir o nível
@@ -295,6 +312,7 @@ namespace BitBeakAPI.Controllers
                 PenasAtuais = usuario.Penas
             });
         }
+
 
         // Função para dar experiência a um usuário específico
         [HttpPost("{usuarioId}/AdicionarExperiencia")]

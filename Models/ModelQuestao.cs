@@ -11,6 +11,7 @@ namespace BitBeakAPI.Models
         Lacuna,
         Codificacao
     }
+
     public class ModelQuestao
     {
         [Key]
@@ -26,6 +27,7 @@ namespace BitBeakAPI.Models
         [ForeignKey("NivelTrilha")]
         public int? IdNivel { get; set; }
 
+        [JsonIgnore]
         public ModelNivelTrilha? Nivel { get; set; }
 
         public ICollection<OpcaoResposta> Opcoes { get; set; } = new List<OpcaoResposta>();
@@ -49,22 +51,25 @@ namespace BitBeakAPI.Models
         [ForeignKey("Questao")]
         public int IdQuestao { get; set; }
 
-        public ModelQuestao? Questao { get; set; }
+        [JsonIgnore]
+        public ModelQuestao Questao { get; set; }
     }
+
     public class Lacuna
     {
         [Key]
         public int IdLacuna { get; set; }
 
         [Required]
-        public string ColunaA { get; set; }
+        public string? ColunaA { get; set; }
 
         [Required]
-        public string ColunaB { get; set; }
+        public string? ColunaB { get; set; }
 
         [ForeignKey("Questao")]
         public int IdQuestao { get; set; }
 
-        public ModelQuestao Questao { get; set; }
+        [JsonIgnore] 
+        public ModelQuestao? Questao { get; set; }
     }
 }
