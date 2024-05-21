@@ -28,8 +28,11 @@ namespace BitBeakAPI.Models
 
         #region Infos
 
-        public int Nivel { get; set; }
-        public int Experiencia { get; set; }
+        [Required]
+        public int NivelUsuario { get; set; }
+        [Required]
+        public int ExperienciaUsuario { get; set; }
+        [Required]
         public int Penas { get; set; }
 
         public ICollection<ModelUsuarioTrilhaProgresso> TrilhasProgresso { get; set; } = new List<ModelUsuarioTrilhaProgresso>();

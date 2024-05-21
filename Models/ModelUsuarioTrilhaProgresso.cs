@@ -20,8 +20,12 @@ namespace BitBeakAPI.Models
 
         public ModelTrilha Trilha { get; set; } = new();
 
-        public int Nivel { get; set; }
+        public int NivelUsuario { get; set; }
 
-        public int Experiencia { get; set; }
+        public int ExperienciaUsuario { get; set; }
+
+        public int Penas { get; set; } 
+
+        public int Erros { get; set; } 
     }
 }

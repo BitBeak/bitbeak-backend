@@ -5,14 +5,15 @@
         public class BitBeakContext : DbContext
         {
             public DbSet<ModelUsuario> Usuarios { get; set; }
-
             public DbSet<ModelTrilha> Trilhas { get; set; }
             public DbSet<ModelNivelTrilha> NiveisTrilha { get; set; }
             public DbSet<ModelQuestao> Questoes { get; set; }
             public DbSet<OpcaoResposta> OpcoesResposta { get; set; }
             public DbSet<Lacuna> Lacunas { get; set; }
+            public DbSet<ModelNivelUsuario> NiveisUsuario { get; set; }
+            public DbSet<ModelUsuarioTrilhaProgresso> UsuarioTrilhaProgresso { get; set; }
 
-            public BitBeakContext(DbContextOptions<BitBeakContext> options) : base(options)
+        public BitBeakContext(DbContextOptions<BitBeakContext> options) : base(options)
             {
             }
 
