@@ -192,6 +192,7 @@ namespace BitBeakAPI.Controllers
         {
             var questao = await _context.Questoes
                 .Include(q => q.Opcoes)
+                .Include(q => q.Nivel)
                 .FirstOrDefaultAsync(q => q.IdQuestao == request.IdQuestao);
 
             if (questao == null)
@@ -213,15 +214,20 @@ namespace BitBeakAPI.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
+            if (questao.Nivel == null)
+            {
+                return BadRequest("A questão não está associada a um nível.");
+            }
+
             var trilhaProgresso = await _context.UsuarioTrilhaProgresso
-                .FirstOrDefaultAsync(p => p.IdUsuario == request.IdUsuario && p.IdTrilha == questao.Nivel!.IdTrilha);
+                .FirstOrDefaultAsync(p => p.IdUsuario == request.IdUsuario && p.IdTrilha == questao.Nivel.IdTrilha);
 
             if (trilhaProgresso == null)
             {
                 trilhaProgresso = new ModelUsuarioTrilhaProgresso
                 {
                     IdUsuario = request.IdUsuario,
-                    IdTrilha = questao.Nivel!.IdTrilha,
+                    IdTrilha = questao.Nivel.IdTrilha,
                     NivelUsuario = questao.Nivel.Nivel,
                     ExperienciaUsuario = 0,
                     Penas = 0,
