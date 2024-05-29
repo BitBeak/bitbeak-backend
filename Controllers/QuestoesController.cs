@@ -12,10 +12,12 @@ namespace BitBeakAPI.Controllers
     public class QuestoesController : ControllerBase
     {
         private readonly BitBeakContext _context;
+        private readonly Judge0Service _judge0Service;
 
-        public QuestoesController(BitBeakContext context)
+        public QuestoesController(BitBeakContext context, Judge0Service judge0Service)
         {
             _context = context;
+            _judge0Service = judge0Service;
         }
 
         // GET: api/Questoes
@@ -50,6 +52,7 @@ namespace BitBeakAPI.Controllers
         {
             List<OpcaoResposta> objOpcoes = new();
             List<Lacuna> objLacunas = new();
+            List<CasoTeste> objCasosTeste = new();
             ModelNivelTrilha? objNivel = new();
 
             try
@@ -70,9 +73,11 @@ namespace BitBeakAPI.Controllers
                 // Adicionar a questão ao contexto para obter um ID
                 objOpcoes = objModelQuestao.Opcoes.ToList(); // Clonar as opções para adicionar depois
                 objLacunas = objModelQuestao.Lacunas.ToList(); // Clonar as lacunas para adicionar depois
+                objCasosTeste = objModelQuestao.CasosTeste.ToList(); // Clonar os casos de teste para adicionar depois
 
                 objModelQuestao.Opcoes.Clear(); // Limpar as opções antes de adicionar a questão
                 objModelQuestao.Lacunas.Clear(); // Limpar as lacunas antes de adicionar a questão
+                objModelQuestao.CasosTeste.Clear(); // Limpar os casos de teste antes de adicionar a questão
 
                 _context.Questoes.Add(objModelQuestao);
                 await _context.SaveChangesAsync();
@@ -95,11 +100,21 @@ namespace BitBeakAPI.Controllers
                     _context.Lacunas.Add(objLacuna);
                 }
 
+                // Atribuir a questão aos casos de teste após ter um ID
+                foreach (CasoTeste objCasoTeste in objCasosTeste)
+                {
+                    objCasoTeste.IdCasoTeste = 0;
+                    objCasoTeste.IdQuestao = objModelQuestao.IdQuestao;
+                    objCasoTeste.Questao = objModelQuestao;
+                    _context.CasoTeste.Add(objCasoTeste);
+                }
+
                 await _context.SaveChangesAsync();
 
-                // Adicionar as opções e lacunas de volta à questão para retorno
+                // Adicionar as opções, lacunas e casos de teste de volta à questão para retorno
                 objModelQuestao.Opcoes = objOpcoes;
                 objModelQuestao.Lacunas = objLacunas;
+                objModelQuestao.CasosTeste = objCasosTeste;
 
                 return CreatedAtAction(nameof(ObterListaQuestao), new { id = objModelQuestao.IdQuestao }, objModelQuestao);
             }
@@ -203,6 +218,24 @@ namespace BitBeakAPI.Controllers
             return NoContent();
         }
 
+        [HttpPost("VerificarCodigo")]
+        public async Task<ActionResult<VerificarCodigoResponse>> VerificarCodigo(VerificarCodigoRequest request)
+        {
+            var questao = await _context.Questoes
+                .Include(q => q.CasosTeste)
+                .FirstOrDefaultAsync(q => q.IdQuestao == request.IdQuestao);
+
+            if (questao == null)
+            {
+                return NotFound("Questão não encontrada.");
+            }
+
+            var casosTeste = questao.CasosTeste.ToList();
+            bool correto = await _judge0Service.ValidarCodigo(request.CodigoUsuario, casosTeste);
+
+            return Ok(new VerificarCodigoResponse { Correto = correto });
+        }
+
         // DELETE: api/Questoes/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteQuestao(int id)
@@ -223,5 +256,16 @@ namespace BitBeakAPI.Controllers
         {
             return _context.Questoes.Any(e => e.IdQuestao == id);
         }
+    }
+
+    public class VerificarCodigoRequest
+    {
+        public int IdQuestao { get; set; }
+        public string CodigoUsuario { get; set; }
+    }
+
+    public class VerificarCodigoResponse
+    {
+        public bool Correto { get; set; }
     }
 }

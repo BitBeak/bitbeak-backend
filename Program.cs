@@ -3,6 +3,7 @@ using BitBeakAPI.Models;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,12 @@ builder.Services.AddTransient<EmailService>(provider => new EmailService(
     smtpUser!,
     smtpPass!
 ));
+
+// Adicionar HttpClient para o Judge0Service
+builder.Services.AddHttpClient<Judge0Service>();
+
+// Configurar a leitura da chave de API do appsettings.json
+builder.Services.Configure<RapidApiConfig>(builder.Configuration.GetSection("RapidApi"));
 
 // Adicionar Swagger
 builder.Services.AddSwaggerGen(c =>

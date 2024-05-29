@@ -34,6 +34,8 @@ namespace BitBeakAPI.Models
 
         public ICollection<Lacuna> Lacunas { get; set; } = new List<Lacuna>();
 
+        public ICollection<CasoTeste> CasosTeste { get; set; } = new List<CasoTeste>();
+
         public string SolucaoEsperada { get; set; } = string.Empty;
     }
 
@@ -70,6 +72,23 @@ namespace BitBeakAPI.Models
         public int IdQuestao { get; set; }
 
         [JsonIgnore] 
+        public ModelQuestao? Questao { get; set; }
+    }
+
+    public class CasoTeste
+    {
+        [Key]
+        public int IdCasoTeste { get; set; }
+
+        [Required]
+        public string Entrada { get; set; }
+
+        [Required]
+        public string SaidaEsperada { get; set; }
+
+        [ForeignKey("Questao")]
+        public int IdQuestao { get; set; }
+
         public ModelQuestao? Questao { get; set; }
     }
 }

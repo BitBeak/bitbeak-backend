@@ -10,6 +10,7 @@
             public DbSet<ModelQuestao> Questoes { get; set; }
             public DbSet<OpcaoResposta> OpcoesResposta { get; set; }
             public DbSet<Lacuna> Lacunas { get; set; }
+            public DbSet<CasoTeste> CasoTeste { get; set; }
             public DbSet<ModelNivelUsuario> NiveisUsuario { get; set; }
             public DbSet<ModelUsuarioTrilhaProgresso> UsuarioTrilhaProgresso { get; set; }
             public DbSet<ModelQuestaoRespondida> QuestoesRespondidas { get; set; }
