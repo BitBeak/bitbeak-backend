@@ -4,6 +4,7 @@ using BitBeakAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    partial class BitBeakContextModelSnapshot : ModelSnapshot
+    [Migration("20240514205054_AddTrilhasQuestoesUsuarios")]
+    partial class AddTrilhasQuestoesUsuarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,32 +24,6 @@ namespace BitBeakAPI.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("BitBeakAPI.Models.Lacuna", b =>
-                {
-                    b.Property<int>("IdLacuna")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdLacuna"));
-
-                    b.Property<string>("ColunaA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ColunaB")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("IdQuestao")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdLacuna");
-
-                    b.HasIndex("IdQuestao");
-
-                    b.ToTable("Lacunas");
-                });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
                 {
@@ -62,34 +39,11 @@ namespace BitBeakAPI.Migrations
                     b.Property<int>("Nivel")
                         .HasColumnType("int");
 
-                    b.Property<string>("NivelName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("IdNivel");
 
                     b.HasIndex("IdTrilha");
 
                     b.ToTable("NiveisTrilha");
-                });
-
-            modelBuilder.Entity("BitBeakAPI.Models.ModelNivelUsuario", b =>
-                {
-                    b.Property<int>("IdNivelUsuario")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdNivelUsuario"));
-
-                    b.Property<int>("ExperienciaNecessaria")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NivelUsuario")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdNivelUsuario");
-
-                    b.ToTable("NiveisUsuario");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelQuestao", b =>
@@ -105,44 +59,25 @@ namespace BitBeakAPI.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int?>("IdNivel")
+                    b.Property<int>("IdNivel")
                         .HasColumnType("int");
 
-                    b.Property<string>("SolucaoEsperada")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("ModelTrilhaIdTrilha")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NivelIdNivel")
+                        .HasColumnType("int");
 
                     b.Property<int>("Tipo")
                         .HasColumnType("int");
 
                     b.HasKey("IdQuestao");
 
-                    b.HasIndex("IdNivel");
+                    b.HasIndex("ModelTrilhaIdTrilha");
+
+                    b.HasIndex("NivelIdNivel");
 
                     b.ToTable("Questoes");
-                });
-
-            modelBuilder.Entity("BitBeakAPI.Models.ModelQuestaoRespondida", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdQuestao")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdQuestao");
-
-                    b.HasIndex("IdUsuario");
-
-                    b.ToTable("QuestoesRespondidas");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelTrilha", b =>
@@ -180,10 +115,10 @@ namespace BitBeakAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ExperienciaUsuario")
+                    b.Property<int>("Experiencia")
                         .HasColumnType("int");
 
-                    b.Property<int>("NivelUsuario")
+                    b.Property<int>("Nivel")
                         .HasColumnType("int");
 
                     b.Property<string>("Nome")
@@ -215,10 +150,7 @@ namespace BitBeakAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdProgresso"));
 
-                    b.Property<int>("Erros")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ExperienciaUsuario")
+                    b.Property<int>("Experiencia")
                         .HasColumnType("int");
 
                     b.Property<int>("IdTrilha")
@@ -227,10 +159,7 @@ namespace BitBeakAPI.Migrations
                     b.Property<int>("IdUsuario")
                         .HasColumnType("int");
 
-                    b.Property<int>("NivelUsuario")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Penas")
+                    b.Property<int>("Nivel")
                         .HasColumnType("int");
 
                     b.HasKey("IdProgresso");
@@ -239,43 +168,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasIndex("IdUsuario");
 
-                    b.ToTable("UsuarioTrilhaProgresso");
-                });
-
-            modelBuilder.Entity("BitBeakAPI.Models.OpcaoResposta", b =>
-                {
-                    b.Property<int>("IdOpcao")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdOpcao"));
-
-                    b.Property<bool>("Correta")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("IdQuestao")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Texto")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("IdOpcao");
-
-                    b.HasIndex("IdQuestao");
-
-                    b.ToTable("OpcoesResposta");
-                });
-
-            modelBuilder.Entity("BitBeakAPI.Models.Lacuna", b =>
-                {
-                    b.HasOne("BitBeakAPI.Models.ModelQuestao", "Questao")
-                        .WithMany("Lacunas")
-                        .HasForeignKey("IdQuestao")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Questao");
+                    b.ToTable("UsuariosTrilhasProgresso");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
@@ -291,30 +184,17 @@ namespace BitBeakAPI.Migrations
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelQuestao", b =>
                 {
+                    b.HasOne("BitBeakAPI.Models.ModelTrilha", null)
+                        .WithMany("Questoes")
+                        .HasForeignKey("ModelTrilhaIdTrilha");
+
                     b.HasOne("BitBeakAPI.Models.ModelNivelTrilha", "Nivel")
                         .WithMany("Questoes")
-                        .HasForeignKey("IdNivel");
+                        .HasForeignKey("NivelIdNivel")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Nivel");
-                });
-
-            modelBuilder.Entity("BitBeakAPI.Models.ModelQuestaoRespondida", b =>
-                {
-                    b.HasOne("BitBeakAPI.Models.ModelQuestao", "Questao")
-                        .WithMany()
-                        .HasForeignKey("IdQuestao")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("IdUsuario")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Questao");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelUsuarioTrilhaProgresso", b =>
@@ -336,32 +216,16 @@ namespace BitBeakAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("BitBeakAPI.Models.OpcaoResposta", b =>
-                {
-                    b.HasOne("BitBeakAPI.Models.ModelQuestao", "Questao")
-                        .WithMany("Opcoes")
-                        .HasForeignKey("IdQuestao")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Questao");
-                });
-
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
                 {
                     b.Navigation("Questoes");
                 });
 
-            modelBuilder.Entity("BitBeakAPI.Models.ModelQuestao", b =>
-                {
-                    b.Navigation("Lacunas");
-
-                    b.Navigation("Opcoes");
-                });
-
             modelBuilder.Entity("BitBeakAPI.Models.ModelTrilha", b =>
                 {
                     b.Navigation("Niveis");
+
+                    b.Navigation("Questoes");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelUsuario", b =>
