@@ -21,9 +21,7 @@
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 modelBuilder.Entity<ModelTrilha>()
-                    .HasMany(t => t.Niveis)
-                    .WithOne(n => n.Trilha)
-                    .HasForeignKey(n => n.IdTrilha);
+                    .HasMany(t => t.Niveis);
 
                 modelBuilder.Entity<ModelNivelTrilha>()
                     .HasMany(n => n.Questoes)

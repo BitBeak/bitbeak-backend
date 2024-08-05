@@ -19,7 +19,7 @@ namespace BitBeakAPI.Controllers
         }
 
         // GET: api/Questoes
-        [HttpGet]
+        [HttpGet("ObterListaQuestoes")]
         public async Task<ActionResult<IEnumerable<ModelQuestao>>> ObterListaQuestoes()
         {
             return await _context.Questoes
@@ -29,24 +29,24 @@ namespace BitBeakAPI.Controllers
         }
 
         // GET: api/Questoes/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ModelQuestao>> ObterListaQuestao(int id)
+        [HttpGet("{intIdQuestao}")]
+        public async Task<ActionResult<ModelQuestao>> ObterListaQuestao(int intIdQuestao)
         {
-            var questao = await _context.Questoes
+            var objQuestao = await _context.Questoes
                 .Include(q => q.Opcoes)
                 .Include(q => q.Lacunas)
-                .FirstOrDefaultAsync(q => q.IdQuestao == id);
+                .FirstOrDefaultAsync(q => q.IdQuestao == intIdQuestao);
 
-            if (questao == null)
+            if (objQuestao == null)
             {
                 return NotFound();
             }
 
-            return questao;
+            return objQuestao;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<ModelQuestao>> AdicionarQuestao(ModelQuestao objModelQuestao)
+        [HttpPost("CriarQuestao")]
+        public async Task<ActionResult<ModelQuestao>> CriarQuestao(ModelQuestao objModelQuestao)
         {
             List<OpcaoResposta> objOpcoes = new();
             List<Lacuna> objLacunas = new();
@@ -109,41 +109,41 @@ namespace BitBeakAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutQuestao(int id, ModelQuestao objModelQuestao)
+        [HttpPut("EditarQuestao/{intIdQuestao}")]
+        public async Task<IActionResult> PutQuestao(int intIdQuestao, ModelQuestao objModelQuestao)
         {
-            if (id != objModelQuestao.IdQuestao)
+            if (intIdQuestao != objModelQuestao.IdQuestao)
             {
                 return BadRequest();
             }
 
-            var questaoExistente = await _context.Questoes
+            var objQuestaoExistente = await _context.Questoes
                 .Include(q => q.Opcoes)
                 .Include(q => q.Lacunas)
-                .FirstOrDefaultAsync(q => q.IdQuestao == id);
+                .FirstOrDefaultAsync(q => q.IdQuestao == intIdQuestao);
 
-            if (questaoExistente == null)
+            if (objQuestaoExistente == null)
             {
                 return NotFound();
             }
 
-            questaoExistente.Enunciado = objModelQuestao.Enunciado ?? questaoExistente.Enunciado;
-            questaoExistente.Tipo = objModelQuestao.Tipo;
-            questaoExistente.SolucaoEsperada = objModelQuestao.SolucaoEsperada ?? questaoExistente.SolucaoEsperada;
+            objQuestaoExistente.Enunciado = objModelQuestao.Enunciado ?? objQuestaoExistente.Enunciado;
+            objQuestaoExistente.Tipo = objModelQuestao.Tipo;
+            objQuestaoExistente.SolucaoEsperada = objModelQuestao.SolucaoEsperada ?? objQuestaoExistente.SolucaoEsperada;
 
             // Atualizar as opções
-            questaoExistente.Opcoes.Clear();
+            objQuestaoExistente.Opcoes.Clear();
             foreach (OpcaoResposta objOpcao in objModelQuestao.Opcoes)
             {
-                questaoExistente.Opcoes.Add(objOpcao);
+                objQuestaoExistente.Opcoes.Add(objOpcao);
             }
 
             // Atualizar as lacunas
-            questaoExistente.Lacunas.Clear();
+            objQuestaoExistente.Lacunas.Clear();
             foreach (Lacuna objLacuna in objModelQuestao.Lacunas)
             {
-                objLacuna.Questao = questaoExistente;
-                questaoExistente.Lacunas.Add(objLacuna);
+                objLacuna.Questao = objQuestaoExistente;
+                objQuestaoExistente.Lacunas.Add(objLacuna);
             }
 
             try
@@ -152,7 +152,7 @@ namespace BitBeakAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!QuestaoExists(id))
+                if (!QuestaoExists(intIdQuestao))
                 {
                     return NotFound();
                 }
@@ -166,23 +166,23 @@ namespace BitBeakAPI.Controllers
         }
 
         // PATCH: api/Questoes/{questaoId}/Nivel/{nivelId}
-        [HttpPatch("{questaoId}/Nivel/{nivelId}")]
-        public async Task<IActionResult> AdicionarQuestaoEmNivel(int questaoId, int nivelId)
+        [HttpPatch("{intIdQuestao}/Nivel/{intIdNivel}")]
+        public async Task<IActionResult> AdicionarQuestaoEmNivel(int intIdQuestao, int intIdNivel)
         {
-            var questao = await _context.Questoes.FindAsync(questaoId);
-            if (questao == null)
+            var objQuestao = await _context.Questoes.FindAsync(intIdQuestao);
+            if (objQuestao == null)
             {
                 return NotFound("Questão não encontrada");
             }
 
-            var nivel = await _context.NiveisTrilha.FindAsync(nivelId);
-            if (nivel == null)
+            var objNivel = await _context.NiveisTrilha.FindAsync(intIdNivel);
+            if (objNivel == null)
             {
                 return NotFound("Nível não encontrado");
             }
 
-            questao.IdNivel = nivelId;
-            questao.Nivel = nivel;
+            objQuestao.IdNivel = intIdNivel;
+            objQuestao.Nivel = objNivel;
 
             try
             {
@@ -190,7 +190,7 @@ namespace BitBeakAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!QuestaoExists(questaoId))
+                if (!QuestaoExists(intIdQuestao))
                 {
                     return NotFound();
                 }
@@ -204,24 +204,24 @@ namespace BitBeakAPI.Controllers
         }
 
         // DELETE: api/Questoes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteQuestao(int id)
+        [HttpDelete("ExcluirQuestao/{intIdQuestao}")]
+        public async Task<IActionResult> ExcluirQuestao(int intIdQuestao)
         {
-            var questao = await _context.Questoes.FindAsync(id);
-            if (questao == null)
+            var objQuestao = await _context.Questoes.FindAsync(intIdQuestao);
+            if (objQuestao == null)
             {
                 return NotFound();
             }
 
-            _context.Questoes.Remove(questao);
+            _context.Questoes.Remove(objQuestao);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool QuestaoExists(int id)
+        private bool QuestaoExists(int intIdQuestao)
         {
-            return _context.Questoes.Any(e => e.IdQuestao == id);
+            return _context.Questoes.Any(e => e.IdQuestao == intIdQuestao);
         }
     }
 }

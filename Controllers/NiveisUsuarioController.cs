@@ -19,46 +19,46 @@ namespace BitBeakAPI.Controllers
         }
 
         // GET: api/NiveisUsuario
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ModelNivelUsuario>>> GetNiveisUsuario()
+        [HttpGet("ObterListaNivelUsuario")]
+        public async Task<ActionResult<IEnumerable<ModelNivelUsuario>>> ObterListaNivelUsuario()
         {
             return await _context.NiveisUsuario.ToListAsync();
         }
 
         // GET: api/NiveisUsuario/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ModelNivelUsuario>> GetNivelUsuario(int id)
+        [HttpGet("ListarDadosNivelUsuario/{intIdNivelUsuario}")]
+        public async Task<ActionResult<ModelNivelUsuario>> ListarDadosNivelUsuario(int intIdNivelUsuario)
         {
-            var nivelUsuario = await _context.NiveisUsuario.FindAsync(id);
+            var objNivelUsuario = await _context.NiveisUsuario.FindAsync(intIdNivelUsuario);
 
-            if (nivelUsuario == null)
+            if (objNivelUsuario == null)
             {
                 return NotFound();
             }
 
-            return nivelUsuario;
+            return objNivelUsuario;
         }
 
         // POST: api/NiveisUsuario
-        [HttpPost]
-        public async Task<ActionResult<ModelNivelUsuario>> PostNivelUsuario(ModelNivelUsuario nivelUsuario)
+        [HttpPost("CriarNivelUsuario")]
+        public async Task<ActionResult<ModelNivelUsuario>> CriarNivelUsuario(ModelNivelUsuario objNivelUsuario)
         {
-            _context.NiveisUsuario.Add(nivelUsuario);
+            _context.NiveisUsuario.Add(objNivelUsuario);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetNivelUsuario), new { id = nivelUsuario.IdNivelUsuario }, nivelUsuario);
+            return CreatedAtAction(nameof(ListarDadosNivelUsuario), new { intIdNivelUsuario = objNivelUsuario.IdNivelUsuario }, objNivelUsuario);
         }
 
         // PUT: api/NiveisUsuario/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutNivelUsuario(int id, ModelNivelUsuario nivelUsuario)
+        [HttpPut("EditarNivelUsuario/{intIdNivelUsuario}")]
+        public async Task<IActionResult> EditarNivelUsuario(int intIdNivelUsuario, ModelNivelUsuario objNivelUsuario)
         {
-            if (id != nivelUsuario.IdNivelUsuario)
+            if (intIdNivelUsuario != objNivelUsuario.IdNivelUsuario)
             {
                 return BadRequest();
             }
 
-            _context.Entry(nivelUsuario).State = EntityState.Modified;
+            _context.Entry(objNivelUsuario).State = EntityState.Modified;
 
             try
             {
@@ -66,7 +66,7 @@ namespace BitBeakAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!NivelUsuarioExists(id))
+                if (!NivelUsuarioExists(intIdNivelUsuario))
                 {
                     return NotFound();
                 }
@@ -80,24 +80,24 @@ namespace BitBeakAPI.Controllers
         }
 
         // DELETE: api/NiveisUsuario/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteNivelUsuario(int id)
+        [HttpDelete("ExcluirNivelUsuario/{intIdNivelUsuario}")]
+        public async Task<IActionResult> ExcluirNivelUsuario(int intIdNivelUsuario)
         {
-            var nivelUsuario = await _context.NiveisUsuario.FindAsync(id);
-            if (nivelUsuario == null)
+            var objNivelUsuario = await _context.NiveisUsuario.FindAsync(intIdNivelUsuario);
+            if (objNivelUsuario == null)
             {
                 return NotFound();
             }
 
-            _context.NiveisUsuario.Remove(nivelUsuario);
+            _context.NiveisUsuario.Remove(objNivelUsuario);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool NivelUsuarioExists(int id)
+        private bool NivelUsuarioExists(int intIdNivelUsuario)
         {
-            return _context.NiveisUsuario.Any(e => e.IdNivelUsuario == id);
+            return _context.NiveisUsuario.Any(e => e.IdNivelUsuario == intIdNivelUsuario);
         }
     }
 }

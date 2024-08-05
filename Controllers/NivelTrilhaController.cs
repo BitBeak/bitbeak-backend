@@ -19,15 +19,15 @@ namespace BitBeakAPI.Controllers
         }
 
         // GET: api/Niveis
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ModelNivelTrilha>>> GetNiveis()
+        [HttpGet ("ObterListaNiveis")]
+        public async Task<ActionResult<IEnumerable<ModelNivelTrilha>>> ObterListaNiveis()
         {
             return await _context.NiveisTrilha.ToListAsync();
         }
 
         // GET: api/Niveis/5
-        [HttpGet("{intId}")]
-        public async Task<ActionResult<ModelNivelTrilha>> GetNivel(int intId)
+        [HttpGet("ListarDadosNivel/{intId}")]
+        public async Task<ActionResult<ModelNivelTrilha>> ListarDadosNivel(int intId)
         {
             ModelNivelTrilha? objModelNivel = new();
 
@@ -49,15 +49,20 @@ namespace BitBeakAPI.Controllers
         }
 
         // POST: api/Niveis
-        [HttpPost]
-        public async Task<ActionResult<ModelNivelTrilha>> PostNivel(ModelNivelTrilha objModelNivel)
+        [HttpPost("CriarNivel")]
+        public async Task<ActionResult<ModelNivelTrilha>> CriarNivel(ModelNivelTrilha objModelNivel)
         {
             try
             {
+                if (!_context.Trilhas.Any(t => t.IdTrilha == objModelNivel.IdTrilha))
+                {
+                    return NotFound($"Trilha com ID {objModelNivel.IdTrilha} não encontrada.");
+                }
+
                 _context.NiveisTrilha.Add(objModelNivel);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetNivel), new { id = objModelNivel.IdNivel }, objModelNivel);
+                return CreatedAtAction(nameof(ListarDadosNivel), new { intId = objModelNivel.IdNivel }, objModelNivel);
             }
             catch (Exception ex)
             {
@@ -66,8 +71,8 @@ namespace BitBeakAPI.Controllers
         }
 
         // PUT: api/Niveis/5
-        [HttpPut("{intId}")]
-        public async Task<IActionResult> PutNivel(int intId, ModelNivelTrilha objModelNivel)
+        [HttpPut("EditarNivelTrilha/{intId}")]
+        public async Task<IActionResult> EditarNivelTrilha(int intId, ModelNivelTrilha objModelNivel)
         {
             try
             {
@@ -103,8 +108,8 @@ namespace BitBeakAPI.Controllers
         }
 
         // DELETE: api/Niveis/5
-        [HttpDelete("{intId}")]
-        public async Task<IActionResult> DeleteNivel(int intId)
+        [HttpDelete("ExcluirNivelTrilha/{intId}")]
+        public async Task<IActionResult> ExcluirNivelTrilha(int intId)
         {
             ModelNivelTrilha? objModelNivel = new();
 
@@ -124,55 +129,6 @@ namespace BitBeakAPI.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
-            }
-        }
-
-        // PATCH: api/Niveis/5/AdicionarNivelEmTrilha/3
-        [HttpPatch("{intNivelId}/AdicionarNivelEmTrilha/{idTrilhaId}")]
-        public async Task<IActionResult> AdicionarNivelEmTrilha(int intNivelId, int idTrilhaId)
-        {
-            ModelNivelTrilha? objModelNivel = new();
-            ModelTrilha? objModelTrilha = new();
-
-            try
-            {
-                objModelNivel = await _context.NiveisTrilha.FindAsync(intNivelId);
-
-                if (objModelNivel == null)
-                {
-                    return NotFound(new { message = "Nível não encontrado" });
-                }
-
-                objModelTrilha = await _context.Trilhas.FindAsync(idTrilhaId);
-                if (objModelTrilha == null)
-                {
-                    return NotFound(new { message = "Trilha não encontrada" });
-                }
-
-                objModelNivel.IdTrilha = idTrilhaId;
-                objModelNivel.Trilha = objModelTrilha;
-
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!NivelExists(intNivelId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-
-                return NoContent();
-            }
-            catch (Exception ex) 
-            {
-               return BadRequest(ex.Message);
             }
         }
 

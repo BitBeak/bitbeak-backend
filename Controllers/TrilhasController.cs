@@ -21,8 +21,8 @@ namespace BitBeakAPI.Controllers
         #region Administradores
 
         // GET: api/Trilhas
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ModelTrilha>>> GetTrilhas()
+        [HttpGet("ObterListaTrilhas")]
+        public async Task<ActionResult<IEnumerable<ModelTrilha>>> ObterListaTrilhas()
         {
             return await _context.Trilhas
                 .Include(t => t.Niveis)
@@ -31,70 +31,69 @@ namespace BitBeakAPI.Controllers
         }
 
         // GET: api/Trilhas/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ModelTrilha>> GetTrilha(int id)
+        [HttpGet("ListarDadosTrilha/{intId}")]
+        public async Task<ActionResult<ModelTrilha>> ListarDadosTrilha(int intId)
         {
-            var trilha = await _context.Trilhas
+            var objTrilha = await _context.Trilhas
                 .Include(t => t.Niveis)
                 .ThenInclude(n => n.Questoes)
-                .FirstOrDefaultAsync(t => t.IdTrilha == id);
+                .FirstOrDefaultAsync(t => t.IdTrilha == intId);
 
-            if (trilha == null)
+            if (objTrilha == null)
             {
                 return NotFound();
             }
 
-            return trilha;
+            return objTrilha;
         }
 
         // POST: api/Trilhas
-        [HttpPost]
-        public async Task<ActionResult<ModelTrilha>> PostTrilha(ModelTrilha trilha)
+        [HttpPost("CriarTrilha")]
+        public async Task<ActionResult<ModelTrilha>> CriarTrilha(ModelTrilha trilha)
         {
             _context.Trilhas.Add(trilha);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTrilha), new { id = trilha.IdTrilha }, trilha);
+            return CreatedAtAction(nameof(ListarDadosTrilha), new { intId = trilha.IdTrilha }, trilha);
         }
 
         // PUT: api/Trilhas/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTrilha(int id, ModelTrilha trilha)
+        [HttpPut("EditarTrilha/{intId}")]
+        public async Task<IActionResult> EditarTrilha(int intId, ModelTrilha objTrilha)
         {
-            if (id != trilha.IdTrilha)
+            if (intId != objTrilha.IdTrilha)
             {
                 return BadRequest();
             }
 
-            var trilhaExistente = await _context.Trilhas
+            var objTrilhaExistente = await _context.Trilhas
                 .Include(t => t.Niveis)
                 .ThenInclude(n => n.Questoes)
-                .FirstOrDefaultAsync(t => t.IdTrilha == id);
+                .FirstOrDefaultAsync(t => t.IdTrilha == intId);
 
-            if (trilhaExistente == null)
+            if (objTrilhaExistente == null)
             {
                 return NotFound();
             }
 
-            trilhaExistente.Nome = trilha.Nome ?? trilhaExistente.Nome;
-            trilhaExistente.Descricao = trilha.Descricao ?? trilhaExistente.Descricao;
+            objTrilhaExistente.Nome = objTrilha.Nome ?? objTrilhaExistente.Nome;
+            objTrilhaExistente.Descricao = objTrilha.Descricao ?? objTrilhaExistente.Descricao;
 
-            foreach (var nivel in trilha.Niveis)
+            foreach (ModelNivelTrilha objNivelTriha in objTrilha.Niveis)
             {
-                var nivelExistente = trilhaExistente.Niveis.FirstOrDefault(n => n.IdNivel == nivel.IdNivel);
-                if (nivelExistente != null)
+                var objNivelExistente = objTrilhaExistente.Niveis.FirstOrDefault(n => n.IdNivel == objNivelTriha.IdNivel);
+                if (objNivelExistente != null)
                 {
-                    nivelExistente.Nivel = nivel.Nivel;
-                    nivelExistente.Questoes = nivel.Questoes;
+                    objNivelExistente.Nivel = objNivelTriha.Nivel;
+                    objNivelExistente.Questoes = objNivelTriha.Questoes;
                 }
                 else
                 {
-                    nivel.Trilha = trilhaExistente;
-                    trilhaExistente.Niveis.Add(nivel);
+                    objTrilhaExistente.Niveis.Add(objNivelTriha);
                 }
             }
 
-            _context.Entry(trilhaExistente).State = EntityState.Modified;
+            _context.Entry(objTrilhaExistente).State = EntityState.Modified;
 
             try
             {
@@ -102,7 +101,7 @@ namespace BitBeakAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TrilhaExists(id))
+                if (!TrilhaExists(intId))
                 {
                     return NotFound();
                 }
@@ -116,16 +115,16 @@ namespace BitBeakAPI.Controllers
         }
 
         // DELETE: api/Trilhas/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTrilha(int id)
+        [HttpDelete("ExcluirTrilha/{intId}")]
+        public async Task<IActionResult> ExcluirTrilha(int intId)
         {
-            var trilha = await _context.Trilhas.FindAsync(id);
-            if (trilha == null)
+            var objTrilha = await _context.Trilhas.FindAsync(intId);
+            if (objTrilha == null)
             {
                 return NotFound();
             }
 
-            _context.Trilhas.Remove(trilha);
+            _context.Trilhas.Remove(objTrilha);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -136,143 +135,142 @@ namespace BitBeakAPI.Controllers
         #region Usuários
 
         // Função para entrar na trilha
-        [HttpGet("{id}/EntrarNaTrilha")]
-        public async Task<ActionResult<ModelTrilha>> EntrarNaTrilha(int id)
+        [HttpGet("EntrarNaTrilha/{intId}")]
+        public async Task<ActionResult<ModelTrilha>> EntrarNaTrilha(int intId)
         {
-            var trilha = await _context.Trilhas
+            var objTrilha = await _context.Trilhas
                 .Include(t => t.Niveis)
                 .ThenInclude(n => n.Questoes)
-                .FirstOrDefaultAsync(t => t.IdTrilha == id);
+                .FirstOrDefaultAsync(t => t.IdTrilha == intId);
 
-            if (trilha == null)
+            if (objTrilha == null)
             {
                 return NotFound();
             }
 
-            return trilha;
+            return objTrilha;
         }
 
         // Função para entrar no nível e obter uma questão aleatória
-        [HttpGet("Trilhas/{idTrilha}/Niveis/{nivel}/ObterQuestaoAleatoria/{idUsuario}")]
-        public async Task<ActionResult<ModelQuestao>> ObterQuestaoAleatoria(int idTrilha, int nivel, int idUsuario)
+        [HttpGet("{intIdTrilha}/Niveis/{intIdNivel}/ObterQuestaoAleatoria/{intIdUsuario}")]
+        public async Task<ActionResult<ModelQuestao>> ObterQuestaoAleatoria(int intIdTrilha, int intIdNivel, int intIdUsuario)
         {
-            var trilha = await _context.Trilhas
+            var objTrilha = await _context.Trilhas
                 .Include(t => t.Niveis)
                 .ThenInclude(n => n.Questoes)
                 .ThenInclude(q => q.Opcoes)
                 .Include(t => t.Niveis)
                 .ThenInclude(n => n.Questoes)
                 .ThenInclude(q => q.Lacunas)
-                .FirstOrDefaultAsync(t => t.IdTrilha == idTrilha);
+                .FirstOrDefaultAsync(t => t.IdTrilha == intIdTrilha);
 
-            if (trilha == null)
+            if (objTrilha == null)
             {
                 return NotFound();
             }
 
-            var nivelTrilha = trilha.Niveis.FirstOrDefault(n => n.Nivel == nivel);
+            var objNivelTrilha = objTrilha.Niveis.FirstOrDefault(n => n.Nivel == intIdNivel);
 
-            if (nivelTrilha == null || !nivelTrilha.Questoes.Any())
+            if (objNivelTrilha == null || !objNivelTrilha.Questoes.Any())
             {
                 return NotFound();
             }
 
-            var questoesRespondidas = await _context.QuestoesRespondidas
-                .Where(qr => qr.IdUsuario == idUsuario)
+            var objQuestoesRespondidas = await _context.QuestoesRespondidas
+                .Where(qr => qr.IdUsuario == intIdUsuario)
                 .Select(qr => qr.IdQuestao)
                 .ToListAsync();
 
-            var questaoAleatoria = nivelTrilha.Questoes
-                .Where(q => !questoesRespondidas.Contains(q.IdQuestao))
+            var objQuestaoAleatoria = objNivelTrilha.Questoes
+                .Where(q => !objQuestoesRespondidas.Contains(q.IdQuestao))
                 .OrderBy(q => Guid.NewGuid())
                 .FirstOrDefault();
 
-            if (questaoAleatoria == null)
+            if (objQuestaoAleatoria == null)
             {
                 return NotFound();
             }
 
-            return questaoAleatoria;
+            return objQuestaoAleatoria;
         }
 
         [HttpPost("VerificarResposta")]
-        public async Task<ActionResult<VerificarRespostaResponse>> VerificarResposta(VerificarRespostaRequest request)
+        public async Task<ActionResult<VerificarRespostaResponse>> VerificarResposta(VerificarRespostaRequest objRequest)
         {
-            var questao = await _context.Questoes
+            var objQuestao = await _context.Questoes
                 .Include(q => q.Opcoes)
                 .Include(q => q.Nivel)
                 .Include(q => q.Lacunas)
-                .FirstOrDefaultAsync(q => q.IdQuestao == request.IdQuestao);
+                .FirstOrDefaultAsync(q => q.IdQuestao == objRequest.IdQuestao);
 
-            if (questao == null)
+            if (objQuestao == null)
             {
                 return NotFound("Questão não encontrada.");
             }
 
-            var opcaoEscolhida = questao.Opcoes.FirstOrDefault(o => o.IdOpcao == request.IdOpcao);
+            var objOpcaoEscolhida = objQuestao.Opcoes.FirstOrDefault(o => o.IdOpcao == objRequest.IdOpcao);
 
-            if (opcaoEscolhida == null)
+            if (objOpcaoEscolhida == null)
             {
                 return NotFound("Opção de resposta não encontrada.");
             }
 
-            var usuario = await _context.Usuarios.FindAsync(request.IdUsuario);
+            var objUsuario = await _context.Usuarios.FindAsync(objRequest.IdUsuario);
 
-            if (usuario == null)
+            if (objUsuario == null)
             {
                 return NotFound("Usuário não encontrado.");
             }
 
-            if (questao.Nivel == null)
+            if (objQuestao.Nivel == null)
             {
                 return BadRequest("A questão não está associada a um nível.");
             }
 
-            var trilhaProgresso = await _context.UsuarioTrilhaProgresso
-                .FirstOrDefaultAsync(p => p.IdUsuario == request.IdUsuario && p.IdTrilha == questao.Nivel.IdTrilha);
+            var objTrilhaProgresso = await _context.UsuarioTrilhaProgresso
+                .FirstOrDefaultAsync(p => p.IdUsuario == objRequest.IdUsuario && p.IdTrilha == objQuestao.Nivel.IdTrilha);
 
-            if (trilhaProgresso == null)
+            if (objTrilhaProgresso == null)
             {
-                trilhaProgresso = new ModelUsuarioTrilhaProgresso
+                objTrilhaProgresso = new ModelUsuarioTrilhaProgresso
                 {
-                    IdUsuario = request.IdUsuario,
-                    IdTrilha = questao.Nivel.IdTrilha,
-                    NivelUsuario = questao.Nivel.Nivel,
+                    IdUsuario = objRequest.IdUsuario,
+                    NivelUsuario = objQuestao.Nivel.Nivel,
                     ExperienciaUsuario = 0,
                     Penas = 0,
                     Erros = 0
                 };
-                _context.UsuarioTrilhaProgresso.Add(trilhaProgresso);
+                _context.UsuarioTrilhaProgresso.Add(objTrilhaProgresso);
                 await _context.SaveChangesAsync();
             }
 
-            bool acertou = opcaoEscolhida.Correta;
-            if (acertou)
+            bool blnAcertou = objOpcaoEscolhida.Correta;
+            if (blnAcertou)
             {
-                trilhaProgresso.ExperienciaUsuario++;
+                objTrilhaProgresso.ExperienciaUsuario++;
             }
             else
             {
-                trilhaProgresso.Erros++;
+                objTrilhaProgresso.Erros++;
             }
 
             // Adiciona a questão respondida à tabela de questões respondidas
-            var questaoRespondida = new ModelQuestaoRespondida
+            var objQuestaoRespondida = new ModelQuestaoRespondida
             {
-                IdUsuario = request.IdUsuario,
-                IdQuestao = request.IdQuestao
+                IdUsuario = objRequest.IdUsuario,
+                IdQuestao = objRequest.IdQuestao
             };
-            _context.QuestoesRespondidas.Add(questaoRespondida);
+            _context.QuestoesRespondidas.Add(objQuestaoRespondida);
 
-            if (trilhaProgresso.ExperienciaUsuario >= 5)
+            if (objTrilhaProgresso.ExperienciaUsuario >= 5)
             {
                 // Concluir o nível
-                trilhaProgresso.NivelUsuario++;
-                trilhaProgresso.ExperienciaUsuario = 0; // Resetar a experiência para o próximo nível
-                usuario.Penas += 10;
+                objTrilhaProgresso.NivelUsuario++;
+                objTrilhaProgresso.ExperienciaUsuario = 0; // Resetar a experiência para o próximo nível
+                objUsuario.Penas += 10;
 
                 // Atualizar a experiência baseada nos erros
-                int expGanha = trilhaProgresso.Erros switch
+                int intExpGanha = objTrilhaProgresso.Erros switch
                 {
                     0 => 50,
                     1 => 45,
@@ -282,23 +280,23 @@ namespace BitBeakAPI.Controllers
                     _ => 10
                 };
 
-                usuario.ExperienciaUsuario += expGanha;
-                trilhaProgresso.Erros = 0; // Resetar os erros após a conclusão do nível
+                objUsuario.ExperienciaUsuario += intExpGanha;
+                objTrilhaProgresso.Erros = 0; // Resetar os erros após a conclusão do nível
 
                 // Verificar se o usuário pode upar de nível
                 while (true)
                 {
-                    var nivelUsuario = await _context.NiveisUsuario
-                        .FirstOrDefaultAsync(nu => nu.NivelUsuario == usuario.NivelUsuario);
+                    var objNivelUsuario = await _context.NiveisUsuario
+                        .FirstOrDefaultAsync(nu => nu.NivelUsuario == objUsuario.NivelUsuario);
 
-                    if (nivelUsuario == null || usuario.ExperienciaUsuario < nivelUsuario.ExperienciaNecessaria)
+                    if (objNivelUsuario == null || objUsuario.ExperienciaUsuario < objNivelUsuario.ExperienciaNecessaria)
                     {
                         break;
                     }
 
                     // Upar de nível
-                    usuario.NivelUsuario++;
-                    usuario.ExperienciaUsuario -= nivelUsuario.ExperienciaNecessaria; // Reduzir a experiência acumulada
+                    objUsuario.NivelUsuario++;
+                    objUsuario.ExperienciaUsuario -= objNivelUsuario.ExperienciaNecessaria; // Reduzir a experiência acumulada
                 }
             }
 
@@ -306,61 +304,61 @@ namespace BitBeakAPI.Controllers
 
             return Ok(new VerificarRespostaResponse
             {
-                Acertou = acertou,
-                NivelAtual = trilhaProgresso.NivelUsuario,
-                ExperienciaAtual = trilhaProgresso.ExperienciaUsuario,
-                PenasAtuais = usuario.Penas
+                Acertou = blnAcertou,
+                NivelAtual = objTrilhaProgresso.NivelUsuario,
+                ExperienciaAtual = objTrilhaProgresso.ExperienciaUsuario,
+                PenasAtuais = objUsuario.Penas
             });
         }
 
 
         // Função para dar experiência a um usuário específico
-        [HttpPost("{usuarioId}/AdicionarExperiencia")]
-        public async Task<IActionResult> AdicionarExperiencia(int usuarioId, [FromBody] AdicionarExperienciaRequest request)
+        [HttpPost("{intIdUsuario}/AdicionarExperiencia")]
+        public async Task<IActionResult> AdicionarExperiencia(int intIdUsuario, [FromBody] AdicionarExperienciaRequest objRequest)
         {
-            var usuario = await _context.Usuarios.FindAsync(usuarioId);
+            var objUsuario = await _context.Usuarios.FindAsync(intIdUsuario);
 
-            if (usuario == null)
+            if (objUsuario == null)
             {
                 return NotFound();
             }
 
             // Adicionar a experiência ao usuário
-            usuario.ExperienciaUsuario += request.Experiencia;
+            objUsuario.ExperienciaUsuario += objRequest.Experiencia;
 
             // Verificar se o usuário pode upar de nível
             while (true)
             {
-                var nivelUsuario = await _context.NiveisUsuario
-                    .FirstOrDefaultAsync(nu => nu.NivelUsuario == usuario.NivelUsuario);
+                var objNivelUsuario = await _context.NiveisUsuario
+                    .FirstOrDefaultAsync(nu => nu.NivelUsuario == objUsuario.NivelUsuario);
 
-                if (nivelUsuario == null || usuario.ExperienciaUsuario < nivelUsuario.ExperienciaNecessaria)
+                if (objNivelUsuario == null || objUsuario.ExperienciaUsuario < objNivelUsuario.ExperienciaNecessaria)
                 {
                     break;
                 }
 
                 // Upar de nível
-                usuario.NivelUsuario++;
-                usuario.ExperienciaUsuario -= nivelUsuario.ExperienciaNecessaria; // Reduzir a experiência acumulada
+                objUsuario.NivelUsuario++;
+                objUsuario.ExperienciaUsuario -= objNivelUsuario.ExperienciaNecessaria; // Reduzir a experiência acumulada
             }
 
             await _context.SaveChangesAsync();
 
             // Retornar a experiência e nível atualizados do usuário
-            var response = new UsuarioExperienciaResponse
+            var objResponse = new UsuarioExperienciaResponse
             {
-                NivelUsuario = usuario.NivelUsuario,
-                ExperienciaUsuario = usuario.ExperienciaUsuario
+                NivelUsuario = objUsuario.NivelUsuario,
+                ExperienciaUsuario = objUsuario.ExperienciaUsuario
             };
 
-            return Ok(response);
+            return Ok(objResponse);
         }
 
         #endregion
 
-        private bool TrilhaExists(int id)
+        private bool TrilhaExists(int intId)
         {
-            return _context.Trilhas.Any(e => e.IdTrilha == id);
+            return _context.Trilhas.Any(e => e.IdTrilha == intId);
         }
     }
 

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    [Migration("20240731221322_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240805163332_CreateDB")]
+    partial class CreateDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -62,6 +62,9 @@ namespace BitBeakAPI.Migrations
                     b.Property<int>("IdTrilha")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ModelTrilhaIdTrilha")
+                        .HasColumnType("int");
+
                     b.Property<int>("Nivel")
                         .HasColumnType("int");
 
@@ -71,7 +74,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasKey("IdNivel");
 
-                    b.HasIndex("IdTrilha");
+                    b.HasIndex("ModelTrilhaIdTrilha");
 
                     b.ToTable("NiveisTrilha");
                 });
@@ -283,13 +286,9 @@ namespace BitBeakAPI.Migrations
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
                 {
-                    b.HasOne("BitBeakAPI.Models.ModelTrilha", "Trilha")
+                    b.HasOne("BitBeakAPI.Models.ModelTrilha", null)
                         .WithMany("Niveis")
-                        .HasForeignKey("IdTrilha")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Trilha");
+                        .HasForeignKey("ModelTrilhaIdTrilha");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelQuestao", b =>

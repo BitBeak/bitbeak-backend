@@ -27,8 +27,8 @@ namespace BitBeakAPI.Controllers
         /// Função para procurar usuários
         /// </summary>
         /// <returns>Retorna todos os usuários e seus dados</returns>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ModelUsuario>>> GetUsuarios()
+        [HttpGet("ObterListaUsuarios")]
+        public async Task<ActionResult<IEnumerable<ModelUsuario>>> ObterListaUsuarios()
         {
             var objUsuarios = await _context.Usuarios.ToListAsync();
 
@@ -47,8 +47,8 @@ namespace BitBeakAPI.Controllers
         /// </summary>
         /// <param name="intId">Obrigatorio - Id do Usuário</param>
         /// <returns>Retorna os dados do usuário pesquisado</returns>
-        [HttpGet("{intId}")]
-        public async Task<ActionResult<ModelUsuario>> GetUsuario(int intId)
+        [HttpGet("ListarDadosUsuario/{intId}")]
+        public async Task<ActionResult<ModelUsuario>> ListarDadosUsuario(int intId)
         {
             var objUsuario = await _context.Usuarios.FindAsync(intId);
 
@@ -88,8 +88,8 @@ namespace BitBeakAPI.Controllers
         /// </summary>
         /// <param name="objUsuario"></param>
         /// <returns></returns>
-        [HttpPost]
-        public async Task<ActionResult<ModelUsuario>> PostUsuario(ModelUsuario objUsuario)
+        [HttpPost("CadastrarUsuario")]
+        public async Task<ActionResult<ModelUsuario>> CadastrarUsuario(ModelUsuario objUsuario)
         {
             // Verificar se o e-mail já existe
             var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email);
@@ -105,15 +105,17 @@ namespace BitBeakAPI.Controllers
                 objUsuario.SenhaCriptografada = Security.Criptografar(objUsuario.Senha);
             }
 
+            objUsuario.NivelUsuario = 1;
+
             _context.Usuarios.Add(objUsuario);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUsuario), new { intId = objUsuario.IdUsuario }, objUsuario);
+            return CreatedAtAction(nameof(ListarDadosUsuario), new { intId = objUsuario.IdUsuario }, objUsuario);
         }
 
         // PUT: api/Usuarios/5
-        [HttpPut("{intId}")]
-        public async Task<IActionResult> PutUsuario(int intId, ModelUsuario objUsuario)
+        [HttpPut("EditarUsuario/{intId}")]
+        public async Task<IActionResult> EditarUsuario(int intId, ModelUsuario objUsuario)
         {
             if (intId != objUsuario.IdUsuario)
             {
@@ -203,8 +205,8 @@ namespace BitBeakAPI.Controllers
         /// <param name="intId"></param>
         /// <returns></returns>
         // DELETE: api/Usuarios/5
-        [HttpDelete("{intId}")]
-        public async Task<IActionResult> DeleteUsuario(int intId)
+        [HttpDelete("ExcluirUsuario/{intId}")]
+        public async Task<IActionResult> ExcluirUsuario(int intId)
         {
             var objUsuario = await _context.Usuarios.FindAsync(intId);
             if (objUsuario == null)

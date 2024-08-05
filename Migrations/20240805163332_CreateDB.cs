@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BitBeakAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class CreateDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -67,17 +67,17 @@ namespace BitBeakAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nivel = table.Column<int>(type: "int", nullable: false),
                     NivelName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IdTrilha = table.Column<int>(type: "int", nullable: false)
+                    IdTrilha = table.Column<int>(type: "int", nullable: false),
+                    ModelTrilhaIdTrilha = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_NiveisTrilha", x => x.IdNivel);
                     table.ForeignKey(
-                        name: "FK_NiveisTrilha_Trilhas_IdTrilha",
-                        column: x => x.IdTrilha,
+                        name: "FK_NiveisTrilha_Trilhas_ModelTrilhaIdTrilha",
+                        column: x => x.ModelTrilhaIdTrilha,
                         principalTable: "Trilhas",
-                        principalColumn: "IdTrilha",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "IdTrilha");
                 });
 
             migrationBuilder.CreateTable(
@@ -205,9 +205,9 @@ namespace BitBeakAPI.Migrations
                 column: "IdQuestao");
 
             migrationBuilder.CreateIndex(
-                name: "IX_NiveisTrilha_IdTrilha",
+                name: "IX_NiveisTrilha_ModelTrilhaIdTrilha",
                 table: "NiveisTrilha",
-                column: "IdTrilha");
+                column: "ModelTrilhaIdTrilha");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OpcoesResposta_IdQuestao",

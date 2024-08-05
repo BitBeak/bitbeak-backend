@@ -52,7 +52,7 @@ namespace BitBeakAPI.Models
         public int IdQuestao { get; set; }
 
         [JsonIgnore]
-        public ModelQuestao Questao { get; set; }
+        public ModelQuestao? Questao { get; set; }
     }
 
     public class Lacuna
