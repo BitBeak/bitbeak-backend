@@ -29,8 +29,8 @@ namespace BitBeakAPI.Controllers
         }
 
         // GET: api/Questoes/5
-        [HttpGet("{intIdQuestao}")]
-        public async Task<ActionResult<ModelQuestao>> ObterListaQuestao(int intIdQuestao)
+        [HttpGet("ListarDadosQuestao/{intIdQuestao}")]
+        public async Task<ActionResult<ModelQuestao>> ListarDadosQuestao(int intIdQuestao)
         {
             var objQuestao = await _context.Questoes
                 .Include(q => q.Opcoes)
@@ -101,7 +101,7 @@ namespace BitBeakAPI.Controllers
                 objModelQuestao.Opcoes = objOpcoes;
                 objModelQuestao.Lacunas = objLacunas;
 
-                return CreatedAtAction(nameof(ObterListaQuestao), new { id = objModelQuestao.IdQuestao }, objModelQuestao);
+                return CreatedAtAction(nameof(ListarDadosQuestao), new { intIdQuestao = objModelQuestao.IdQuestao }, objModelQuestao);
             }
             catch (Exception ex)
             {
@@ -110,7 +110,7 @@ namespace BitBeakAPI.Controllers
         }
 
         [HttpPut("EditarQuestao/{intIdQuestao}")]
-        public async Task<IActionResult> PutQuestao(int intIdQuestao, ModelQuestao objModelQuestao)
+        public async Task<IActionResult> EditarQuestao(int intIdQuestao, ModelQuestao objModelQuestao)
         {
             if (intIdQuestao != objModelQuestao.IdQuestao)
             {
@@ -210,13 +210,13 @@ namespace BitBeakAPI.Controllers
             var objQuestao = await _context.Questoes.FindAsync(intIdQuestao);
             if (objQuestao == null)
             {
-                return NotFound();
+                return NotFound("Questão não encontrada!");
             }
 
             _context.Questoes.Remove(objQuestao);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Questão excluída com sucesso!");
         }
 
         private bool QuestaoExists(int intIdQuestao)

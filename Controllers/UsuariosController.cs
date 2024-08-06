@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BitBeakAPI.Controllers
 {
@@ -47,6 +48,7 @@ namespace BitBeakAPI.Controllers
         /// </summary>
         /// <param name="intId">Obrigatorio - Id do Usuário</param>
         /// <returns>Retorna os dados do usuário pesquisado</returns>
+        [AllowAnonymous]
         [HttpGet("ListarDadosUsuario/{intId}")]
         public async Task<ActionResult<ModelUsuario>> ListarDadosUsuario(int intId)
         {
