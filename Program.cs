@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
+using BitBeakAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,8 @@ builder.Services.AddTransient<EmailService>(provider => new EmailService(
     smtpUser!,
     smtpPass!
 ));
+
+builder.Services.AddScoped<QuestaoService>();
 
 // Adicionar Swagger
 builder.Services.AddSwaggerGen(c =>

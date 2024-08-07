@@ -18,6 +18,9 @@ namespace BitBeakAPI.Models
         [ForeignKey("Trilha")]
         public int IdTrilha { get; set; }
 
+        [JsonIgnore]
+        public ModelTrilha? Trilha { get; set; }
+
         public ICollection<ModelQuestao> Questoes { get; set; } = new List<ModelQuestao>();
     }
 }

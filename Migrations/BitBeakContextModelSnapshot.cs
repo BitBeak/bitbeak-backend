@@ -59,9 +59,6 @@ namespace BitBeakAPI.Migrations
                     b.Property<int>("IdTrilha")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ModelTrilhaIdTrilha")
-                        .HasColumnType("int");
-
                     b.Property<int>("Nivel")
                         .HasColumnType("int");
 
@@ -71,7 +68,7 @@ namespace BitBeakAPI.Migrations
 
                     b.HasKey("IdNivel");
 
-                    b.HasIndex("ModelTrilhaIdTrilha");
+                    b.HasIndex("IdTrilha");
 
                     b.ToTable("NiveisTrilha");
                 });
@@ -283,9 +280,13 @@ namespace BitBeakAPI.Migrations
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
                 {
-                    b.HasOne("BitBeakAPI.Models.ModelTrilha", null)
+                    b.HasOne("BitBeakAPI.Models.ModelTrilha", "Trilha")
                         .WithMany("Niveis")
-                        .HasForeignKey("ModelTrilhaIdTrilha");
+                        .HasForeignKey("IdTrilha")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trilha");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelQuestao", b =>

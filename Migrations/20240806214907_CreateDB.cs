@@ -67,17 +67,17 @@ namespace BitBeakAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nivel = table.Column<int>(type: "int", nullable: false),
                     NivelName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IdTrilha = table.Column<int>(type: "int", nullable: false),
-                    ModelTrilhaIdTrilha = table.Column<int>(type: "int", nullable: true)
+                    IdTrilha = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_NiveisTrilha", x => x.IdNivel);
                     table.ForeignKey(
-                        name: "FK_NiveisTrilha_Trilhas_ModelTrilhaIdTrilha",
-                        column: x => x.ModelTrilhaIdTrilha,
+                        name: "FK_NiveisTrilha_Trilhas_IdTrilha",
+                        column: x => x.IdTrilha,
                         principalTable: "Trilhas",
-                        principalColumn: "IdTrilha");
+                        principalColumn: "IdTrilha",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -205,9 +205,9 @@ namespace BitBeakAPI.Migrations
                 column: "IdQuestao");
 
             migrationBuilder.CreateIndex(
-                name: "IX_NiveisTrilha_ModelTrilhaIdTrilha",
+                name: "IX_NiveisTrilha_IdTrilha",
                 table: "NiveisTrilha",
-                column: "ModelTrilhaIdTrilha");
+                column: "IdTrilha");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OpcoesResposta_IdQuestao",
