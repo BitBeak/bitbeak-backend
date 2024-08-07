@@ -36,7 +36,7 @@ namespace BitBeakAPI.Controllers
 
             if (objPrimeiraQuestao is ModelQuestao objDadosQuestao)
             {
-                // Retorna a primeira questão para o frontend
+                // Retornar a primeira questão para o frontend
                 return Ok(new { Questao = objDadosQuestao, 
                                 IdUsuario = objIniciarNivel.IdUsuario, 
                                 QuestoesRespondidas = objQuestoesRespondidas, 
@@ -109,8 +109,8 @@ namespace BitBeakAPI.Controllers
             if (objResultadoResposta.Result is OkObjectResult okResultResposta && 
                ((VerificarRespostaResponse)okResultResposta.Value!).Acertou)
             {
-                objRequest.ContadorAcertos++;                                       // Adicionar +1 no contador de acertos
-                objRequest.QuestoesRespondidas.Add(objRequest.IdQuestaoAleatoria);  // Inserir id da questão em Questoes Respondidas
+                objRequest.ContadorAcertos++;                                        // Adicionar +1 no contador de acertos
+                objRequest.QuestoesRespondidas!.Add(objRequest.IdQuestaoAleatoria);  // Inserir id da questão em Questoes Respondidas
             }
             else
             {
@@ -130,7 +130,7 @@ namespace BitBeakAPI.Controllers
 
             var objProximaQuestao = await ObterProximaQuestao(objRequest.IdTrilha, 
                                                               objRequest.IdNivelTrilha, 
-                                                              objRequest.QuestoesRespondidas);
+                                                              objRequest.QuestoesRespondidas!);
 
             if (objProximaQuestao is ModelQuestao objDadosQuestao)
             {
@@ -358,7 +358,7 @@ namespace BitBeakAPI.Controllers
             public int IdUsuario { get; set; }
             public int IdQuestaoAleatoria { get; set; }
             public int IdOpcaoEscolhidaUsuario { get; set; }
-            public HashSet<int> QuestoesRespondidas { get; set; }
+            public HashSet<int>? QuestoesRespondidas { get; set; }
             public int ContadorAcertos { get; set; }
             public int ContadorErros { get; set; }
         }

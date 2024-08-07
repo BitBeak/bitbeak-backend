@@ -43,7 +43,7 @@ namespace BitBeakAPI.Models
         public int IdOpcao { get; set; }
 
         [Required]
-        public string Texto { get; set; }
+        public string? Texto { get; set; }
 
         [Required]
         public bool Correta { get; set; }
