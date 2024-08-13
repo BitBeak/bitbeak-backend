@@ -30,12 +30,14 @@ namespace BitBeakAPI.Models
 
         [Required]
         public int NivelUsuario { get; set; }
+
         [Required]
         public int ExperienciaUsuario { get; set; }
+
+        public int ExperienciaQuinzenalUsuario { get; set; }
+
         [Required]
         public int Penas { get; set; }
-
-        public ICollection<ModelUsuarioTrilhaProgresso> TrilhasProgresso { get; set; } = new List<ModelUsuarioTrilhaProgresso>();
 
         #endregion
     }

@@ -52,6 +52,7 @@ namespace BitBeakAPI.Migrations
                     PasswordResetTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
                     NivelUsuario = table.Column<int>(type: "int", nullable: false),
                     ExperienciaUsuario = table.Column<int>(type: "int", nullable: false),
+                    ExperienciaQuinzenalUsuario = table.Column<int>(type: "int", nullable: false),
                     Penas = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -81,36 +82,6 @@ namespace BitBeakAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UsuarioTrilhaProgresso",
-                columns: table => new
-                {
-                    IdProgresso = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdUsuario = table.Column<int>(type: "int", nullable: false),
-                    IdTrilha = table.Column<int>(type: "int", nullable: false),
-                    NivelUsuario = table.Column<int>(type: "int", nullable: false),
-                    ExperienciaUsuario = table.Column<int>(type: "int", nullable: false),
-                    Penas = table.Column<int>(type: "int", nullable: false),
-                    Erros = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UsuarioTrilhaProgresso", x => x.IdProgresso);
-                    table.ForeignKey(
-                        name: "FK_UsuarioTrilhaProgresso_Trilhas_IdTrilha",
-                        column: x => x.IdTrilha,
-                        principalTable: "Trilhas",
-                        principalColumn: "IdTrilha",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UsuarioTrilhaProgresso_Usuarios_IdUsuario",
-                        column: x => x.IdUsuario,
-                        principalTable: "Usuarios",
-                        principalColumn: "IdUsuario",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Questoes",
                 columns: table => new
                 {
@@ -129,6 +100,26 @@ namespace BitBeakAPI.Migrations
                         column: x => x.IdNivel,
                         principalTable: "NiveisTrilha",
                         principalColumn: "IdNivel");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CodeFill",
+                columns: table => new
+                {
+                    IdCodeFill = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RespostaEsperada = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdQuestao = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CodeFill", x => x.IdCodeFill);
+                    table.ForeignKey(
+                        name: "FK_CodeFill_Questoes_IdQuestao",
+                        column: x => x.IdQuestao,
+                        principalTable: "Questoes",
+                        principalColumn: "IdQuestao",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -200,6 +191,11 @@ namespace BitBeakAPI.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_CodeFill_IdQuestao",
+                table: "CodeFill",
+                column: "IdQuestao");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Lacunas_IdQuestao",
                 table: "Lacunas",
                 column: "IdQuestao");
@@ -228,21 +224,14 @@ namespace BitBeakAPI.Migrations
                 name: "IX_QuestoesRespondidas_IdUsuario",
                 table: "QuestoesRespondidas",
                 column: "IdUsuario");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UsuarioTrilhaProgresso_IdTrilha",
-                table: "UsuarioTrilhaProgresso",
-                column: "IdTrilha");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UsuarioTrilhaProgresso_IdUsuario",
-                table: "UsuarioTrilhaProgresso",
-                column: "IdUsuario");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "CodeFill");
+
             migrationBuilder.DropTable(
                 name: "Lacunas");
 
@@ -254,9 +243,6 @@ namespace BitBeakAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "QuestoesRespondidas");
-
-            migrationBuilder.DropTable(
-                name: "UsuarioTrilhaProgresso");
 
             migrationBuilder.DropTable(
                 name: "Questoes");
