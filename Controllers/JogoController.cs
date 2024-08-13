@@ -18,6 +18,7 @@ namespace BitBeakAPI.Controllers
             _questaoService = objQuestaoService;
         }
 
+        #region Iniciar Nível
         /// <summary>
         /// Função que INICIA um nível 
         /// </summary>
@@ -117,7 +118,7 @@ namespace BitBeakAPI.Controllers
                     RespostasLacunas = objRequest.RespostasLacunas.Select(objLacuna => new VerificarRespostaRequest.RespostaLacuna
                                                                             {IdLacuna = objLacuna.IdLacuna, RespostaColunaA = objLacuna.RespostaColunaA, RespostaColunaB = objLacuna.RespostaColunaB }
                                                                          ).ToList(),
-        };
+                };
 
                 var objResultadoResposta = await VerificarResposta(objRespostaRequest);
 
@@ -245,11 +246,11 @@ namespace BitBeakAPI.Controllers
                 case TipoQuestao.Lacuna:
                     if (objQuestao.Lacunas != null && objRequest.RespostasLacunas != null)
                     {
-                        blnAcertou = objRequest.RespostasLacunas.All(respostaLacuna =>
-                                                objQuestao.Lacunas.Any(lacuna =>
-                                                                       lacuna.IdLacuna == respostaLacuna.IdLacuna &&
-                                                                       lacuna.ColunaA == respostaLacuna.RespostaColunaA &&
-                                                                       lacuna.ColunaB == respostaLacuna.RespostaColunaB));
+                        blnAcertou = objRequest.RespostasLacunas.All(objRespostaLacuna =>
+                                                objQuestao.Lacunas.Any(objLacuna =>
+                                                                       objLacuna.IdLacuna == objRespostaLacuna.IdLacuna &&
+                                                                       objLacuna.ColunaA == objRespostaLacuna.RespostaColunaA &&
+                                                                       objLacuna.ColunaB == objRespostaLacuna.RespostaColunaB));
                     }
                     else
                     {
@@ -258,13 +259,10 @@ namespace BitBeakAPI.Controllers
                     break;
                 case TipoQuestao.CodeFill:
 
-                    blnAcertou = objQuestao.CodeFill.All(cf =>
+                    blnAcertou = objQuestao.CodeFill.All(objCodeFill =>
                     {
-                        string strRespostaEsperadaFormatada = cf.RespostaEsperada!.Replace(" ", "").ToUpper();
+                        string strRespostaEsperadaFormatada = objCodeFill.RespostaEsperada!.Replace(" ", "").ToUpper();
                         string strRespostaUsuarioFormatada = objRequest.RespostaUsuario!.Replace(" ", "").ToUpper();
-
-                        Console.WriteLine($"Resposta Esperada (formatada): {strRespostaEsperadaFormatada}");
-                        Console.WriteLine($"Resposta do Usuário (formatada): {strRespostaUsuarioFormatada}");
 
                         return strRespostaEsperadaFormatada == strRespostaUsuarioFormatada;
                     });
@@ -307,6 +305,50 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        #endregion
+
+        /// <summary>
+        /// Função para Ranking Quinzenal de jogadores com mais experiência ganha
+        /// </summary>
+        /// <param name="idUsuario">Obrigatório enviar o ID do Usuário</param>
+        /// <returns></returns>
+        [HttpGet("RankingQuinzenal/{intIdUsuario}")]
+        public async Task<ActionResult> RankingQuinzenal(int intIdUsuario)
+        {
+            var objTopUsuarios = await _context.Usuarios
+                                            .OrderByDescending(u => u.ExperienciaQuinzenalUsuario)
+                                            .Take(10)
+                                            .ToListAsync();
+
+            var objRanking = objTopUsuarios.Select((objUsuario, intIndex) => new UsuarioRankingResponse
+            {
+                IdUsuario = objUsuario.IdUsuario,
+                Nome = objUsuario.Nome,
+                ExperienciaQuinzenal = objUsuario.ExperienciaQuinzenalUsuario,
+                Posicao = intIndex + 1
+            }).ToList();
+
+            var objUsuarioAtual = await _context.Usuarios.FindAsync(intIdUsuario);
+            if (objUsuarioAtual == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            int intExperienciaQuinzenalAtual = objUsuarioAtual.ExperienciaQuinzenalUsuario;
+            int intPosicaoAtual = objRanking.FirstOrDefault(u => u.IdUsuario == intIdUsuario)?.Posicao ?? -1;
+
+            if (intPosicaoAtual == -1)
+            {
+                intPosicaoAtual = await _context.Usuarios.CountAsync(u => u.ExperienciaQuinzenalUsuario > intExperienciaQuinzenalAtual) + 1;
+            }
+
+            return Ok(new
+            {
+                TopUsuarios = objRanking,
+                PosicaoAtual = new { Nome = objUsuarioAtual.Nome, ExperienciaQuinzenal = intExperienciaQuinzenalAtual, Posicao = intPosicaoAtual }
+            });
+        }
+
         [HttpPost("{intIdUsuario}/AdicionarExperiencia")]
         public async Task<IActionResult> AdicionarExperiencia(int intIdUsuario, [FromBody] AdicionarExperienciaRequest objRequest)
         {
@@ -319,6 +361,7 @@ namespace BitBeakAPI.Controllers
 
             // Adicionar a experiência ao usuário
             objUsuario.ExperienciaUsuario += objRequest.Experiencia;
+            objUsuario.ExperienciaQuinzenalUsuario += objRequest.Experiencia;
 
             // Verificar se o usuário pode upar de nível
             while (true)
@@ -336,13 +379,15 @@ namespace BitBeakAPI.Controllers
                 objUsuario.ExperienciaUsuario -= objNivelUsuario.ExperienciaNecessaria; // Reduzir a experiência acumulada
             }
 
+            _context.Usuarios.Update(objUsuario);
             await _context.SaveChangesAsync();
 
             // Retornar a experiência e nível atualizados do usuário
             var objResponse = new UsuarioExperienciaResponse
             {
                 NivelUsuario = objUsuario.NivelUsuario,
-                ExperienciaUsuario = objUsuario.ExperienciaUsuario
+                ExperienciaUsuario = objUsuario.ExperienciaUsuario,
+                ExperienciaQuinzenalUsuario = objUsuario.ExperienciaQuinzenalUsuario
             };
 
             return Ok(objResponse);
@@ -415,6 +460,15 @@ namespace BitBeakAPI.Controllers
         {
             public int NivelUsuario { get; set; }
             public int ExperienciaUsuario { get; set; }
+            public int ExperienciaQuinzenalUsuario { get; set; }
+        }
+
+        public class UsuarioRankingResponse
+        {
+            public int IdUsuario { get; set; }
+            public string? Nome { get; set; }
+            public int ExperienciaQuinzenal { get; set; }
+            public int Posicao { get; set; }
         }
 
         #endregion
