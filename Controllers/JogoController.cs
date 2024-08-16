@@ -2,6 +2,14 @@
 using BitBeakAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using DotNetEnv;
+using System.Net;
+using System.Security.Authentication;
+using System.Text.Json.Serialization;
 
 namespace BitBeakAPI.Controllers
 {
@@ -11,11 +19,92 @@ namespace BitBeakAPI.Controllers
     {
         private readonly BitBeakContext _context;
         private readonly QuestaoService _questaoService;
+        private readonly string _strApiKey; 
+
 
         public JogoController(BitBeakContext objContext, QuestaoService objQuestaoService)
         {
             _context = objContext;
             _questaoService = objQuestaoService;
+
+            Env.Load();  // Carrega as variáveis de ambiente do arquivo .env
+            _strApiKey = Environment.GetEnvironmentVariable("RAPIDAPI_KEY")!;
+        }
+
+        [NonAction]
+        public async Task<bool> ExecutarCodigoRemotamente(string strCodigoUsuario, string strEntradaEsperada, string strSaidaEsperada)
+        {
+            try
+            {
+                HttpClient HttpClient = new();
+
+                // Codificar em Base64
+                string strBase64SourceCode = Convert.ToBase64String(Encoding.UTF8.GetBytes(strCodigoUsuario));
+                string strBase64Stdin = Convert.ToBase64String(Encoding.UTF8.GetBytes(strEntradaEsperada));
+                string strBase64ExpectedOutput = Convert.ToBase64String(Encoding.UTF8.GetBytes(strSaidaEsperada));
+
+                var objPayload = new
+                {
+                    source_code = strBase64SourceCode,
+                    language_id = 63, // JavaScript no Judge0
+                    stdin = strBase64Stdin,
+                    expected_output = strBase64ExpectedOutput
+                };
+
+                string strJson = JsonSerializer.Serialize(objPayload);
+                StringContent objContent = new StringContent(strJson, Encoding.UTF8, "application/json");
+
+                HttpRequestMessage objRequest = new()
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri("https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=true&wait=true"),
+                    Content = objContent,
+                    Headers =
+                            {
+                                { "x-rapidapi-key", _strApiKey },
+                                { "x-rapidapi-host", "judge0-ce.p.rapidapi.com" },
+                            },
+                };
+
+                using (var response = await HttpClient.SendAsync(objRequest))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string strBody = await response.Content.ReadAsStringAsync();
+                        Judge0Response objResult = JsonSerializer.Deserialize<Judge0Response>(strBody)!;
+
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(objResult.Stdout))
+                            {
+                                string strDecodedStdout = Encoding.UTF8.GetString(Convert.FromBase64String(objResult.Stdout.Trim()));
+                                Console.WriteLine("Decoded Stdout:");
+                                Console.WriteLine(strDecodedStdout);
+
+                                string strDecodedExpectedOutput = Encoding.UTF8.GetString(Convert.FromBase64String(strBase64ExpectedOutput.Trim()));
+                                return strDecodedStdout.Trim().ToUpper() == strDecodedExpectedOutput.Trim().ToUpper();
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                        catch
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        string strErrorMessage = await response.Content.ReadAsStringAsync();
+                        return false;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         #region Iniciar Nível
@@ -217,6 +306,7 @@ namespace BitBeakAPI.Controllers
         /// </summary>
         /// <param name="objRequest"></param>
         /// <returns></returns>
+        [NonAction]
         public async Task<ActionResult<VerificarRespostaResponse>> VerificarResposta(VerificarRespostaRequest objRequest)
         {
             var objQuestao = await _context.Questoes
@@ -267,6 +357,10 @@ namespace BitBeakAPI.Controllers
                         return strRespostaEsperadaFormatada == strRespostaUsuarioFormatada;
                     });
                     break;
+                case TipoQuestao.Codificacao:
+                    string strCodigoCompleto = $"function teste() {{\n {objRequest.RespostaUsuario} \n}} teste();";
+                    blnAcertou = await ExecutarCodigoRemotamente(strCodigoCompleto, "", objQuestao.SolucaoEsperada);
+                    break;
             }
 
             return Ok(new VerificarRespostaResponse
@@ -276,6 +370,12 @@ namespace BitBeakAPI.Controllers
             });
         }
 
+        /// <summary>
+        /// Função para obter uma questão aleaatória do Nível da Trilha
+        /// </summary>
+        /// <param name="intIdTrilha">Obrigatório passar o Id da Trilha</param>
+        /// <param name="intIdNivel">Obrigatório passar o Id do Nível</param>
+        /// <returns>Retorna uma questão aleatória</returns>
         [HttpGet("{intIdTrilha}/Niveis/{intIdNivel}/ObterIdQuestaoAleatoria")]
         public async Task<ActionResult<int>> ObterIdQuestaoAleatoria(int intIdTrilha, int intIdNivel)
         {
@@ -349,6 +449,12 @@ namespace BitBeakAPI.Controllers
             });
         }
 
+        /// <summary>
+        /// Função para adicionar experiência para um usuário específico
+        /// </summary>
+        /// <param name="intIdUsuario">Obrigatório passar o Id do Usuário</param>
+        /// <param name="objRequest">Obrigatório passar o a quantia de xp que será colocado para o usuário</param>
+        /// <returns></returns>
         [HttpPost("{intIdUsuario}/AdicionarExperiencia")]
         public async Task<IActionResult> AdicionarExperiencia(int intIdUsuario, [FromBody] AdicionarExperienciaRequest objRequest)
         {
@@ -469,6 +575,45 @@ namespace BitBeakAPI.Controllers
             public string? Nome { get; set; }
             public int ExperienciaQuinzenal { get; set; }
             public int Posicao { get; set; }
+        }
+
+        #endregion
+
+        #region Judge0
+        public class Judge0Response
+        {
+            [JsonPropertyName("stdout")]
+            public string Stdout { get; set; } = String.Empty;
+
+            [JsonPropertyName("time")]
+            public string Time { get; set; } = String.Empty;
+
+            [JsonPropertyName("memory")]
+            public int Memory { get; set; }
+
+            [JsonPropertyName("stderr")]
+            public string Stderr { get; set; } = String.Empty;
+
+            [JsonPropertyName("token")]
+            public string Token { get; set; } = String.Empty;
+
+            [JsonPropertyName("compile_output")]
+            public string Compile_output { get; set; } = String.Empty;
+
+            [JsonPropertyName("message")]
+            public string Message { get; set; } = String.Empty;
+
+            [JsonPropertyName("status")]
+            public Status? Status { get; set; }  
+        }
+
+        public class Status
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
+
+            [JsonPropertyName("description")]
+            public string Description { get; set; } = String.Empty;
         }
 
         #endregion

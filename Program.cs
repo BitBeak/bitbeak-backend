@@ -16,17 +16,14 @@ var smtpServer = builder.Configuration["Smtp:Server"];
 var smtpPort = builder.Configuration["Smtp:Port"];
 var smtpUser = builder.Configuration["Smtp:User"];
 var smtpPass = builder.Configuration["Smtp:Pass"];
-
 logger.LogInformation($"SMTP Server: {smtpServer}");
 logger.LogInformation($"SMTP Port: {smtpPort}");
 logger.LogInformation($"SMTP User: {smtpUser}");
-logger.LogInformation($"SMTP Pass: {smtpPass}");
 
 // Adicionar serviços ao contêiner
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = null; // Remove o ReferenceHandler.Preserve
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 
@@ -71,7 +68,7 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BitBeakAPI v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BITBEAK API V1");
 });
 
 app.UseHttpsRedirection();
