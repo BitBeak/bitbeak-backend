@@ -19,7 +19,7 @@ namespace BitBeakAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<bool> Login([FromBody] ModelLogin objModelLogin)
+        public async Task<IActionResult> Login([FromBody] ModelLogin objModelLogin)
         {
             try
             {
@@ -27,8 +27,7 @@ namespace BitBeakAPI.Controllers
 
                 if (objUsuario == null)
                 {
-                    // Usuário não encontrado
-                    return false;
+                    return Unauthorized("Usuário não encontrado.");
                 }
 
                 // Descriptografar a senha armazenada
@@ -37,18 +36,18 @@ namespace BitBeakAPI.Controllers
                 // Verificar se a senha fornecida corresponde à senha armazenada
                 if (objModelLogin.Senha != strSenhaDescriptografada)
                 {
-                    // Senha incorreta
-                    return false;
+                    return Unauthorized("Senha incorreta.");
                 }
 
                 // Autenticação bem-sucedida
-                return true;
+                // Aqui, você pode retornar um token de autenticação ou uma resposta de sucesso
+                return Ok(new { Message = "Login bem-sucedido" });
             }
-            catch
-            {
-                return false;
+            catch (Exception ex) 
+            { 
+                return BadRequest(ex); 
             }
+            
         }
-
     }
 }
