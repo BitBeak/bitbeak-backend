@@ -31,15 +31,22 @@ namespace BitBeakAPI.Controllers
         [HttpGet("ObterListaUsuarios")]
         public async Task<ActionResult<IEnumerable<ModelUsuario>>> ObterListaUsuarios()
         {
-            var objUsuarios = await _context.Usuarios.ToListAsync();
-
-            // Por motivos de segurança, não retorne a senha criptografada
-            foreach (var objUsuario in objUsuarios)
+            try
             {
-                objUsuario.SenhaCriptografada = null;
-            }
+                var objUsuarios = await _context.Usuarios.ToListAsync();
 
-            return objUsuarios;
+                // Por motivos de segurança, não retorne a senha criptografada
+                foreach (var objUsuario in objUsuarios)
+                {
+                    objUsuario.SenhaCriptografada = null;
+                }
+
+                return objUsuarios;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // GET: api/Usuarios/5
@@ -48,36 +55,42 @@ namespace BitBeakAPI.Controllers
         /// </summary>
         /// <param name="intId">Obrigatorio - Id do Usuário</param>
         /// <returns>Retorna os dados do usuário pesquisado</returns>
-        [AllowAnonymous]
-        [HttpGet("ListarDadosUsuario/{intId}")]
-        public async Task<ActionResult<ModelUsuario>> ListarDadosUsuario(int intId)
+        [HttpGet("ListarDadosUsuario/{intIdUsuario}")]
+        public async Task<ActionResult<ModelUsuario>> ListarDadosUsuario(int intIdUsuario)
         {
-            var objUsuario = await _context.Usuarios.FindAsync(intId);
-
-            if (objUsuario == null)
+            try
             {
-                return NotFound();
-            }
+                var objUsuario = await _context.Usuarios.FindAsync(intIdUsuario);
 
-            // Descriptografar a senha antes de retorná-la
-            if (!string.IsNullOrEmpty(objUsuario.SenhaCriptografada))
+                if (objUsuario == null)
+                {
+                    return NotFound();
+                }
+
+                // Descriptografar a senha antes de retorná-la
+                if (!string.IsNullOrEmpty(objUsuario.SenhaCriptografada))
+                {
+                    try
+                    {
+                        objUsuario.Senha = Security.Descriptografar(objUsuario.SenhaCriptografada);
+                    }
+                    catch (CryptographicException ex)
+                    {
+                        // Log da exceção para fins de debug
+                        Console.WriteLine($"Erro ao descriptografar a senha do usuário {objUsuario.IdUsuario}: {ex.Message}");
+                        return StatusCode(500, "Erro ao descriptografar a senha");
+                    }
+                }
+
+                // Não retorne a senha criptografada por motivos de segurança
+                objUsuario.SenhaCriptografada = null;
+
+                return objUsuario;
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    objUsuario.Senha = Security.Descriptografar(objUsuario.SenhaCriptografada);
-                }
-                catch (CryptographicException ex)
-                {
-                    // Log da exceção para fins de debug
-                    Console.WriteLine($"Erro ao descriptografar a senha do usuário {objUsuario.IdUsuario}: {ex.Message}");
-                    return StatusCode(500, "Erro ao descriptografar a senha");
-                }
+                return BadRequest(ex.Message);
             }
-
-            // Não retorne a senha criptografada por motivos de segurança
-            objUsuario.SenhaCriptografada = null;
-
-            return objUsuario;
         }
 
         #endregion
@@ -93,133 +106,178 @@ namespace BitBeakAPI.Controllers
         [HttpPost("CadastrarUsuario")]
         public async Task<ActionResult<ModelUsuario>> CadastrarUsuario(ModelUsuario objUsuario)
         {
-            // Verificar se o e-mail já existe
-            var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email);
-
-            if (objUsuarioExistente != null)
+            try
             {
-                return Conflict("Já existe uma conta com este e-mail.");
-            }
+                // Verificar se o e-mail já existe
+                var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email);
 
-            // Criptografar a senha fornecida pelo usuário antes de salvar
-            if (!string.IsNullOrEmpty(objUsuario.Senha))
+                if (objUsuarioExistente != null)
+                {
+                    return Conflict("Já existe uma conta com este e-mail.");
+                }
+
+                // Criptografar a senha fornecida pelo usuário antes de salvar
+                if (!string.IsNullOrEmpty(objUsuario.Senha))
+                {
+                    objUsuario.SenhaCriptografada = Security.Criptografar(objUsuario.Senha);
+                }
+
+                objUsuario.NivelUsuario = 1;
+
+                _context.Usuarios.Add(objUsuario);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(ListarDadosUsuario), new { intId = objUsuario.IdUsuario }, objUsuario);
+            }
+            catch (Exception ex)
             {
-                objUsuario.SenhaCriptografada = Security.Criptografar(objUsuario.Senha);
+                return BadRequest(ex.Message);
             }
-
-            objUsuario.NivelUsuario = 1;
-
-            _context.Usuarios.Add(objUsuario);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(ListarDadosUsuario), new { intId = objUsuario.IdUsuario }, objUsuario);
         }
 
         // PUT: api/Usuarios/5
         [HttpPut("EditarUsuario/{intId}")]
         public async Task<IActionResult> EditarUsuario(int intId, ModelUsuario objUsuario)
         {
-            if (intId != objUsuario.IdUsuario)
-            {
-                return BadRequest();
-            }
-
-            // Verificar se o e-mail já existe para outro usuário
-            var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email && u.IdUsuario != intId);
-            if (objUsuarioExistente != null)
-            {
-                return Conflict("Já existe uma conta com este e-mail.");
-            }
-
-            // Criptografar a senha fornecida pelo usuário antes de atualizar
-            if (!string.IsNullOrEmpty(objUsuario.Senha))
-            {
-                objUsuario.SenhaCriptografada = Security.Criptografar(objUsuario.Senha);
-            }
-
-            _context.Entry(objUsuario).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UsuarioExists(intId))
+                if (intId != objUsuario.IdUsuario)
                 {
-                    return NotFound();
+                    return BadRequest();
                 }
-                else
+
+                // Verificar se o e-mail já existe para outro usuário
+                var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email && u.IdUsuario != intId);
+
+                if (objUsuarioExistente != null)
                 {
-                    throw;
+                    return Conflict("Já existe uma conta com este e-mail.");
                 }
+
+                // Criptografar a senha fornecida pelo usuário antes de atualizar
+                if (!string.IsNullOrEmpty(objUsuario.Senha))
+                {
+                    objUsuario.SenhaCriptografada = Security.Criptografar(objUsuario.Senha);
+                }
+
+                _context.Entry(objUsuario).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!UsuarioExists(intId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                return NoContent();
             }
-
-            return NoContent();
-        }
-
-        [HttpPost("ResetarSenha")]
-        public async Task<IActionResult> ResetarSenha([FromBody] string strEmail)
-        {
-            var objUsuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == strEmail);
-            if (objUsuario == null)
+            catch (Exception ex)
             {
-                return NotFound("Usuário não encontrado");
+                return BadRequest(ex.Message);
             }
-
-            // Gerar um token de recuperação de senha
-            objUsuario.PasswordResetToken = Guid.NewGuid().ToString();
-            objUsuario.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Token válido por 1 hora
-
-            await _context.SaveChangesAsync();
-
-            // Enviar email com o token de recuperação de senha
-            await _emailService.SendPasswordResetEmail(objUsuario.Email, objUsuario.PasswordResetToken);
-
-            return Ok("Token de recuperação de senha enviado para o email");
         }
 
         [HttpPost("TokenResetarSenha")]
-        public async Task<IActionResult> TokenResetarSenha([FromBody] ModelResetSenha objModelResetPassword)
+        public async Task<IActionResult> TokenResetarSenha([FromBody] string strEmail)
         {
-            var objUsuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.PasswordResetToken == objModelResetPassword.Token);
-            if (objUsuario == null || objUsuario.PasswordResetTokenExpiry < DateTime.UtcNow)
+            try
             {
-                return BadRequest("Token inválido ou expirado");
+                var objUsuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == strEmail);
+
+
+                if (objUsuario == null)
+                {
+                    return NotFound("Usuário não encontrado");
+                }
+
+                // Gerar um token de recuperação de senha
+                objUsuario.PasswordResetToken = Guid.NewGuid().ToString();
+                objUsuario.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Token válido por 1 hora
+
+                await _context.SaveChangesAsync();
+
+                // Enviar email com o token de recuperação de senha
+                await _emailService.SendPasswordResetEmail(objUsuario.Email, objUsuario.PasswordResetToken);
+
+                return Ok("Token de recuperação de senha enviado para o email");
             }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-            // Redefinir a senha
-            objUsuario.SenhaCriptografada = Security.Criptografar(objModelResetPassword.NovaSenha);
-            objUsuario.PasswordResetToken = null;
-            objUsuario.PasswordResetTokenExpiry = null;
+        /// <summary>
+        /// Função para redefinir senha do
+        /// </summary>
+        /// <param name="objModelResetPassword"></param>
+        /// <returns></returns>
+        [HttpPost("RedefinirSenha")]
+        public async Task<IActionResult> RedefinirSenha([FromBody] ModelResetSenha objModelResetPassword)
+        {
+            
+            try
+            {
+                var objUsuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.PasswordResetToken == objModelResetPassword.Token);
+                if (objUsuario == null || objUsuario.PasswordResetTokenExpiry < DateTime.UtcNow)
+                {
+                    return BadRequest("Token inválido ou expirado");
+                }
 
-            await _context.SaveChangesAsync();
+                // Redefinir a senha
+                objUsuario.SenhaCriptografada = Security.Criptografar(objModelResetPassword.NovaSenha);
+                objUsuario.PasswordResetToken = null;
+                objUsuario.PasswordResetTokenExpiry = null;
 
-            return Ok("Senha redefinida com sucesso");
+                await _context.SaveChangesAsync();
+
+                return Ok("Senha redefinida com sucesso");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         #endregion
 
         #region Funções de DELETE
         /// <summary>
-        /// Função usuário específico
+        /// Função para deletar um usuário específico
         /// </summary>
         /// <param name="intId"></param>
         /// <returns></returns>
         // DELETE: api/Usuarios/5
-        [HttpDelete("ExcluirUsuario/{intId}")]
-        public async Task<IActionResult> ExcluirUsuario(int intId)
+        [HttpDelete("ExcluirUsuario/{intIdUsuario}")]
+        public async Task<IActionResult> ExcluirUsuario(int intIdUsuario)
         {
-            var objUsuario = await _context.Usuarios.FindAsync(intId);
-            if (objUsuario == null)
+            try
             {
-                return NotFound();
+                var objUsuario = await _context.Usuarios.FindAsync(intIdUsuario);
+
+                if (objUsuario == null)
+                {
+                    return NotFound();
+                }
+
+                _context.Usuarios.Remove(objUsuario);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Usuarios.Remove(objUsuario);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // Método para verificar se um usuário existe

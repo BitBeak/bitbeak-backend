@@ -21,25 +21,33 @@ namespace BitBeakAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] ModelLogin objModelLogin)
         {
-            var objUsuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objModelLogin.Email);
-
-            if (objUsuario == null)
+            try
             {
-                return Unauthorized("Usuário não encontrado.");
+                var objUsuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objModelLogin.Email);
+
+                if (objUsuario == null)
+                {
+                    return Unauthorized("Usuário não encontrado.");
+                }
+
+                // Descriptografar a senha armazenada
+                string strSenhaDescriptografada = Security.Descriptografar(strTextoCriptografado: objUsuario.SenhaCriptografada!);
+
+                // Verificar se a senha fornecida corresponde à senha armazenada
+                if (objModelLogin.Senha != strSenhaDescriptografada)
+                {
+                    return Unauthorized("Senha incorreta.");
+                }
+
+                // Autenticação bem-sucedida
+                // Aqui, você pode retornar um token de autenticação ou uma resposta de sucesso
+                return Ok(new { Message = "Login bem-sucedido" });
             }
-
-            // Descriptografar a senha armazenada
-            string strSenhaDescriptografada = Security.Descriptografar(strTextoCriptografado: objUsuario.SenhaCriptografada!);
-
-            // Verificar se a senha fornecida corresponde à senha armazenada
-            if (objModelLogin.Senha != strSenhaDescriptografada)
-            {
-                return Unauthorized("Senha incorreta.");
+            catch (Exception ex) 
+            { 
+                return BadRequest(ex); 
             }
-
-            // Autenticação bem-sucedida
-            // Aqui, você pode retornar um token de autenticação ou uma resposta de sucesso
-            return Ok(new { Message = "Login bem-sucedido" });
+            
         }
     }
 }

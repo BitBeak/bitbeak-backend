@@ -9,7 +9,8 @@ namespace BitBeakAPI.Models
     {
         Pergunta,
         Lacuna,
-        Codificacao
+        Codificacao,
+        CodeFill
     }
 
     public class ModelQuestao
@@ -34,6 +35,8 @@ namespace BitBeakAPI.Models
 
         public ICollection<Lacuna> Lacunas { get; set; } = new List<Lacuna>();
 
+        public ICollection<CodeFill> CodeFill { get; set; } = new List<CodeFill>();
+
         public string SolucaoEsperada { get; set; } = string.Empty;
     }
 
@@ -43,7 +46,7 @@ namespace BitBeakAPI.Models
         public int IdOpcao { get; set; }
 
         [Required]
-        public string Texto { get; set; }
+        public string? Texto { get; set; }
 
         [Required]
         public bool Correta { get; set; }
@@ -70,6 +73,21 @@ namespace BitBeakAPI.Models
         public int IdQuestao { get; set; }
 
         [JsonIgnore] 
+        public ModelQuestao? Questao { get; set; }
+    }
+
+    public class CodeFill
+    {
+        [Key]
+        public int IdCodeFill { get; set; }
+
+        [Required]
+        public string? RespostaEsperada { get; set; }
+
+        [ForeignKey("Questao")]
+        public int IdQuestao { get; set; }
+
+        [JsonIgnore]
         public ModelQuestao? Questao { get; set; }
     }
 }
