@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "3YxqQ5FnY8I=",
+  "dgSpecHash": "Zl/GeBCR7+M=",
   "success": true,
   "projectFilePath": "F:\\BitBeak\\BitBeakAPI\\BitBeakAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\vmarc\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\vmarc\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
     "C:\\Users\\vmarc\\.nuget\\packages\\dotenv.net\\3.2.0\\dotenv.net.3.2.0.nupkg.sha512",
-    "C:\\Users\\vmarc\\.nuget\\packages\\dotnetenv\\3.1.0\\dotnetenv.3.1.0.nupkg.sha512",
+    "C:\\Users\\vmarc\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",
     "C:\\Users\\vmarc\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\vmarc\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.4\\microsoft.aspnetcore.openapi.8.0.4.nupkg.sha512",
     "C:\\Users\\vmarc\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",

@@ -127,7 +127,7 @@ namespace BitBeakAPI.Controllers
                 _context.Usuarios.Add(objUsuario);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(ListarDadosUsuario), new { intId = objUsuario.IdUsuario }, objUsuario);
+                return CreatedAtAction(nameof(ListarDadosUsuario), new { intIdUsuario = objUsuario.IdUsuario }, objUsuario);
             }
             catch (Exception ex)
             {

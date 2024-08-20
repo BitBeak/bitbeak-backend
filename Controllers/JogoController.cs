@@ -116,27 +116,38 @@ namespace BitBeakAPI.Controllers
         [HttpPost("IniciarNivel")]
         public async Task<ActionResult> IniciarNivel([FromBody] IniciarNivelRequest objIniciarNivel)
         {
-            var objQuestoesRespondidas = new HashSet<int>();
-            int intContadorAcertos = 0;
-            int intContadorErros = 0;
-
-            var objPrimeiraQuestao = await ObterProximaQuestao(objIniciarNivel.IdTrilha, 
-                                                               objIniciarNivel.IdNivelTrilha, 
-                                                               objQuestoesRespondidas);
-
-            if (objPrimeiraQuestao is ModelQuestao objDadosQuestao)
+            try
             {
-                // Retornar a primeira questão para o frontend
-                return Ok(new { Questao = objDadosQuestao, 
-                                IdUsuario = objIniciarNivel.IdUsuario, 
-                                QuestoesRespondidas = objQuestoesRespondidas, 
-                                ContadorAcertos = intContadorAcertos, 
-                                ContadorErros = intContadorErros });
+                var objQuestoesRespondidas = new HashSet<int>();
+                int intContadorAcertos = 0;
+                int intContadorErros = 0;
+
+                var objPrimeiraQuestao = await ObterProximaQuestao(objIniciarNivel.IdTrilha,
+                                                                   objIniciarNivel.IdNivelTrilha,
+                                                                   objQuestoesRespondidas);
+
+                if (objPrimeiraQuestao is ModelQuestao objDadosQuestao)
+                {
+                    // Retornar a primeira questão para o frontend
+                    return Ok(new
+                    {
+                        Questao = objDadosQuestao,
+                        IdUsuario = objIniciarNivel.IdUsuario,
+                        QuestoesRespondidas = objQuestoesRespondidas,
+                        ContadorAcertos = intContadorAcertos,
+                        ContadorErros = intContadorErros
+                    });
+                }
+                else
+                {
+                    return NotFound("Nenhuma questão encontrada para iniciar o nível.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return NotFound("Nenhuma questão encontrada para iniciar o nível.");
+                return BadRequest(ex.Message);
             }
+            
         }
 
         /// <summary>
@@ -415,38 +426,45 @@ namespace BitBeakAPI.Controllers
         [HttpGet("RankingQuinzenal/{intIdUsuario}")]
         public async Task<ActionResult> RankingQuinzenal(int intIdUsuario)
         {
-            var objTopUsuarios = await _context.Usuarios
+            try
+            {
+                var objTopUsuarios = await _context.Usuarios
                                             .OrderByDescending(u => u.ExperienciaQuinzenalUsuario)
                                             .Take(10)
                                             .ToListAsync();
 
-            var objRanking = objTopUsuarios.Select((objUsuario, intIndex) => new UsuarioRankingResponse
-            {
-                IdUsuario = objUsuario.IdUsuario,
-                Nome = objUsuario.Nome,
-                ExperienciaQuinzenal = objUsuario.ExperienciaQuinzenalUsuario,
-                Posicao = intIndex + 1
-            }).ToList();
+                var objRanking = objTopUsuarios.Select((objUsuario, intIndex) => new UsuarioRankingResponse
+                {
+                    IdUsuario = objUsuario.IdUsuario,
+                    Nome = objUsuario.Nome,
+                    ExperienciaQuinzenal = objUsuario.ExperienciaQuinzenalUsuario,
+                    Posicao = intIndex + 1
+                }).ToList();
 
-            var objUsuarioAtual = await _context.Usuarios.FindAsync(intIdUsuario);
-            if (objUsuarioAtual == null)
-            {
-                return NotFound("Usuário não encontrado.");
+                var objUsuarioAtual = await _context.Usuarios.FindAsync(intIdUsuario);
+                if (objUsuarioAtual == null)
+                {
+                    return NotFound("Usuário não encontrado.");
+                }
+
+                int intExperienciaQuinzenalAtual = objUsuarioAtual.ExperienciaQuinzenalUsuario;
+                int intPosicaoAtual = objRanking.FirstOrDefault(u => u.IdUsuario == intIdUsuario)?.Posicao ?? -1;
+
+                if (intPosicaoAtual == -1)
+                {
+                    intPosicaoAtual = await _context.Usuarios.CountAsync(u => u.ExperienciaQuinzenalUsuario > intExperienciaQuinzenalAtual) + 1;
+                }
+
+                return Ok(new
+                {
+                    TopUsuarios = objRanking,
+                    PosicaoAtual = new { Nome = objUsuarioAtual.Nome, ExperienciaQuinzenal = intExperienciaQuinzenalAtual, Posicao = intPosicaoAtual }
+                });
             }
-
-            int intExperienciaQuinzenalAtual = objUsuarioAtual.ExperienciaQuinzenalUsuario;
-            int intPosicaoAtual = objRanking.FirstOrDefault(u => u.IdUsuario == intIdUsuario)?.Posicao ?? -1;
-
-            if (intPosicaoAtual == -1)
+            catch (Exception ex)
             {
-                intPosicaoAtual = await _context.Usuarios.CountAsync(u => u.ExperienciaQuinzenalUsuario > intExperienciaQuinzenalAtual) + 1;
+                return BadRequest(ex.Message);
             }
-
-            return Ok(new
-            {
-                TopUsuarios = objRanking,
-                PosicaoAtual = new { Nome = objUsuarioAtual.Nome, ExperienciaQuinzenal = intExperienciaQuinzenalAtual, Posicao = intPosicaoAtual }
-            });
         }
 
         /// <summary>
