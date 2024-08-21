@@ -38,6 +38,10 @@ namespace BitBeakAPI.Models
         public ICollection<CodeFill> CodeFill { get; set; } = new List<CodeFill>();
 
         public string SolucaoEsperada { get; set; } = string.Empty;
+
+        public string Instrucoes { get; set; } = string.Empty; // Para questões de Codificação ou que tenha alguma explicação adicional.
+
+        public string Codigo { get; set; } = string.Empty; // Para questões onde além do enunciado, mostram um código.
     }
 
     public class OpcaoResposta

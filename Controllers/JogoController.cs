@@ -80,8 +80,11 @@ namespace BitBeakAPI.Controllers
                                 string strDecodedStdout = Encoding.UTF8.GetString(Convert.FromBase64String(objResult.Stdout.Trim()));
                                 Console.WriteLine("Decoded Stdout:");
                                 Console.WriteLine(strDecodedStdout);
-
+                                
                                 string strDecodedExpectedOutput = Encoding.UTF8.GetString(Convert.FromBase64String(strBase64ExpectedOutput.Trim()));
+                                Console.WriteLine("Decoded Expected:");
+                                Console.WriteLine(strDecodedExpectedOutput);
+
                                 return strDecodedStdout.Trim().ToUpper() == strDecodedExpectedOutput.Trim().ToUpper();
                             }
                             else
