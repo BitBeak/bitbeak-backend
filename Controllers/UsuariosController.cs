@@ -25,7 +25,7 @@ namespace BitBeakAPI.Controllers
         #region Funções de GET
         // GET: api/Usuarios
         /// <summary>
-        /// Função para procurar usuários
+        /// Função para procurar usuários ok
         /// </summary>
         /// <returns>Retorna todos os usuários e seus dados</returns>
         [HttpGet("ObterListaUsuarios")]
