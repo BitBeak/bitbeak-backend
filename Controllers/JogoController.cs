@@ -247,6 +247,7 @@ namespace BitBeakAPI.Controllers
                     {
                         intXpGanho = 35;
                         intPenasGanhas = 5;
+                        
                     }
                     else if (objRequest.ContadorErros == 1)
                     {
@@ -260,6 +261,7 @@ namespace BitBeakAPI.Controllers
                     }
 
                     objUsuario.ExperienciaUsuario += intXpGanho;
+                    objUsuario.ExperienciaQuinzenalUsuario += intXpGanho;
                     objUsuario.Penas += intPenasGanhas;
 
                     // Verificar se o usuário subiu de nível
@@ -282,20 +284,20 @@ namespace BitBeakAPI.Controllers
                     await _context.SaveChangesAsync();
 
                     // Chamar a função para registrar a conclusão do nível
-                    var resultadoConclusao = await ConcluirNivel(objUsuario.IdUsuario, objRequest.IdTrilha, objRequest.IdNivelTrilha);
-                    if (resultadoConclusao is BadRequestObjectResult)
+                    var objResultadoConclusao = await ConcluirNivel(objUsuario.IdUsuario, objRequest.IdTrilha, objRequest.IdNivelTrilha);
+                    if (objResultadoConclusao is BadRequestObjectResult)
                     {
-                        return resultadoConclusao; // Retornar qualquer erro ocorrido na conclusão
+                        return objResultadoConclusao; // Retornar qualquer erro ocorrido na conclusão
                     }
 
                     // Verificar se todos os níveis da trilha foram concluídos
-                    bool trilhaConcluida = await VerificarConclusaoTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
-                    if (trilhaConcluida)
+                    bool blnTrilhaConcluida = await VerificarConclusaoTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
+                    if (blnTrilhaConcluida)
                     {
-                        var resultadoConclusaoTrilha = await ConcluirTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
-                        if (resultadoConclusaoTrilha is BadRequestObjectResult)
+                        var objResultadoConclusaoTrilha = await ConcluirTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
+                        if (objResultadoConclusaoTrilha is BadRequestObjectResult)
                         {
-                            return resultadoConclusaoTrilha; // Retornar qualquer erro ocorrido na conclusão da trilha
+                            return objResultadoConclusaoTrilha; // Retornar qualquer erro ocorrido na conclusão da trilha
                         }
                     }
 
