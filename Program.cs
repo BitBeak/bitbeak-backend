@@ -3,15 +3,14 @@ using BitBeakAPI.Models;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Configuration;
 using BitBeakAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ConfiguraÁıes de logging
+// Configura√ß√µes de logging
 var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger<Program>();
 
-// Verificar configuraÁıes de SMTP
+// Verificar configura√ß√µes de SMTP
 var smtpServer = builder.Configuration["Smtp:Server"];
 var smtpPort = builder.Configuration["Smtp:Port"];
 var smtpUser = builder.Configuration["Smtp:User"];
@@ -20,7 +19,7 @@ logger.LogInformation($"SMTP Server: {smtpServer}");
 logger.LogInformation($"SMTP Port: {smtpPort}");
 logger.LogInformation($"SMTP User: {smtpUser}");
 
-// Adicionar serviÁos ao contÍiner
+// Adicionar servi√ßos ao cont√™iner
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -30,7 +29,7 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<BitBeakContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Registrar o serviÁo de envio de email
+// Registrar o servi√ßo de envio de email
 builder.Services.AddTransient<EmailService>(provider => new EmailService(
     smtpServer!,
     int.Parse(smtpPort!),
@@ -64,6 +63,9 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+// Configurar o servidor para escutar em todas as interfaces na porta 5159
+app.Urls.Add("http://0.0.0.0:5159");
+
 // Configurar o Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -71,9 +73,13 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "BITBEAK API V1");
 });
 
-app.UseHttpsRedirection();
+// Redirecionar para HTTPS apenas em produ√ß√£o
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
-// Aplicar a polÌtica de CORS
+// Aplicar a pol√≠tica de CORS
 app.UseCors("AllowAll");
 
 app.UseRouting();

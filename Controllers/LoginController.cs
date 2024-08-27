@@ -39,15 +39,14 @@ namespace BitBeakAPI.Controllers
                     return Unauthorized("Senha incorreta.");
                 }
 
-                // Autenticação bem-sucedida
-                // Aqui, você pode retornar um token de autenticação ou uma resposta de sucesso
-                return Ok(new { Message = "Login bem-sucedido" });
+                // Autenticação bem-sucedida, retornar o IdUsuario junto com a mensagem
+                return Ok(new { IdUsuario = objUsuario.IdUsuario, Message = "Login bem-sucedido" });
             }
-            catch (Exception ex) 
-            { 
-                return BadRequest(ex); 
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
             }
-            
+
         }
     }
 }
