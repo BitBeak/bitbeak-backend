@@ -93,6 +93,58 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Função para obter o progresso do usuário 
+        /// </summary>
+        /// <param name="intIdUsuario"></param>
+        /// <returns></returns>
+        [HttpGet("ObterProgressoUsuario/{intIdUsuario}")]
+        public async Task<ActionResult> ObterProgressoUsuario(int intIdUsuario)
+        {
+            try
+            {
+                // Buscar o usuário pelo ID
+                var objUsuario = await _context.Usuarios.FindAsync(intIdUsuario);
+                if (objUsuario == null)
+                {
+                    return NotFound("Usuário não encontrado.");
+                }
+
+                // Buscar o nível atual do usuário
+                var objNivelAtual = await _context.NiveisUsuario
+                    .FirstOrDefaultAsync(n => n.NivelUsuario == objUsuario.NivelUsuario);
+
+                if (objNivelAtual == null)
+                {
+                    return NotFound("Nível atual do usuário não encontrado.");
+                }
+
+                // Buscar o próximo nível
+                var objProximoNivel = await _context.NiveisUsuario
+                    .FirstOrDefaultAsync(n => n.NivelUsuario == objUsuario.NivelUsuario + 1);
+
+                if (objProximoNivel == null)
+                {
+                    return NotFound("Próximo nível não encontrado.");
+                }
+
+                // Montar o resultado
+                var objResultado = new
+                {
+                    Penas = objUsuario.Penas,
+                    NivelAtual = objUsuario.NivelUsuario,
+                    ExperienciaUsuario = objUsuario.ExperienciaUsuario,
+                    ExperienciaNecessaria = objProximoNivel.ExperienciaNecessaria
+                };
+
+                return Ok(objResultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         #endregion
 
         #region Funções de POST e PUT

@@ -8738,23 +8738,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\hegus\\.nuget\\packages\\": {},
+    "C:\\Users\\vmarc\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\hegus\\source\\repos\\BitBeak\\bitbeak-backend\\BitBeakAPI.csproj",
+      "projectUniqueName": "F:\\BitBeak\\BitBeakAPI\\BitBeakAPI.csproj",
       "projectName": "BitBeakAPI",
-      "projectPath": "C:\\Users\\hegus\\source\\repos\\BitBeak\\bitbeak-backend\\BitBeakAPI.csproj",
-      "packagesPath": "C:\\Users\\hegus\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\hegus\\Source\\Repos\\BitBeak\\bitbeak-backend\\obj\\",
+      "projectPath": "F:\\BitBeak\\BitBeakAPI\\BitBeakAPI.csproj",
+      "packagesPath": "C:\\Users\\vmarc\\.nuget\\packages\\",
+      "outputPath": "F:\\BitBeak\\BitBeakAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\hegus\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\vmarc\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
