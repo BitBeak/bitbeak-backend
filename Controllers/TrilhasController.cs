@@ -155,7 +155,7 @@ namespace BitBeakAPI.Controllers
             return objTrilha;
         }
 
-       
+
 
 
         #endregion

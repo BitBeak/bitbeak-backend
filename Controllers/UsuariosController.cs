@@ -145,6 +145,39 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        [HttpGet("ObterNiveisConcluidos/{idTrilha}/{idUsuario}")]
+        public async Task<ActionResult> ObterNiveisConcluidos(int idTrilha, int idUsuario)
+        {
+            try
+            {
+                // Buscar os níveis concluídos pelo usuário na trilha especificada
+                var niveisConcluidos = await _context.UsuarioNiveisConcluidos
+                    .Where(un => un.IdUsuario == idUsuario && un.IdTrilha == idTrilha)
+                    .Select(un => un.IdNivel)
+                    .ToListAsync();
+
+                // Verificar se existem níveis concluídos
+                if (niveisConcluidos == null || niveisConcluidos.Count == 0)
+                {
+                    return NotFound("Nenhum nível concluído encontrado para esta trilha.");
+                }
+
+                // Montar o resultado com a lista de níveis concluídos e a quantidade
+                var resultado = new
+                {
+                    QuantidadeConcluida = niveisConcluidos.Count,
+                    NiveisConcluidos = niveisConcluidos
+                };
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
         #endregion
 
         #region Funções de POST e PUT

@@ -217,9 +217,11 @@ namespace BitBeakAPI.Controllers
                     IdQuestao = objRequest.IdQuestaoAleatoria,
                     IdOpcao = objRequest.IdOpcaoEscolhidaUsuario,
                     IdUsuario = objRequest.IdUsuario,
+                    IdNivel = objRequest.IdNivelTrilha,
+                    IdTrilha = objRequest.IdTrilha,
                     RespostaUsuario = objRequest.RespostaUsuario,
                     RespostasLacunas = objRequest.RespostasLacunas.Select(objLacuna => new VerificarRespostaRequest.RespostaLacuna
-                                                                            {IdLacuna = objLacuna.IdLacuna, RespostaColunaA = objLacuna.RespostaColunaA, RespostaColunaB = objLacuna.RespostaColunaB }
+                    { IdLacuna = objLacuna.IdLacuna, RespostaColunaA = objLacuna.RespostaColunaA, RespostaColunaB = objLacuna.RespostaColunaB }
                                                                          ).ToList(),
                 };
 
@@ -279,12 +281,29 @@ namespace BitBeakAPI.Controllers
                     _context.Usuarios.Update(objUsuario);
                     await _context.SaveChangesAsync();
 
-                    return Ok($"Parabéns! Você conclui o nível {objRequest.IdNivelTrilha}!");
+                    // Chamar a função para registrar a conclusão do nível
+                    var resultadoConclusao = await ConcluirNivel(objUsuario.IdUsuario, objRequest.IdTrilha, objRequest.IdNivelTrilha);
+                    if (resultadoConclusao is BadRequestObjectResult)
+                    {
+                        return resultadoConclusao; // Retornar qualquer erro ocorrido na conclusão
+                    }
+
+                    // Verificar se todos os níveis da trilha foram concluídos
+                    bool trilhaConcluida = await VerificarConclusaoTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
+                    if (trilhaConcluida)
+                    {
+                        var resultadoConclusaoTrilha = await ConcluirTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
+                        if (resultadoConclusaoTrilha is BadRequestObjectResult)
+                        {
+                            return resultadoConclusaoTrilha; // Retornar qualquer erro ocorrido na conclusão da trilha
+                        }
+                    }
+
+                    return Ok($"Parabéns! Você concluiu o nível {objRequest.IdNivelTrilha}!");
                 }
-            
+
                 else if (objRequest.ContadorErros == 3)
                 {
-
                     return Ok("Jogo finalizado. Tente novamente!");
                 }
 
@@ -323,11 +342,13 @@ namespace BitBeakAPI.Controllers
         [NonAction]
         public async Task<ActionResult<VerificarRespostaResponse>> VerificarResposta(VerificarRespostaRequest objRequest)
         {
+            // Buscar a questão e incluir as relações necessárias
             var objQuestao = await _context.Questoes
                 .Include(q => q.Opcoes)
                 .Include(q => q.Lacunas)
                 .Include(q => q.CodeFill)
                 .Include(q => q.Nivel)
+                .ThenInclude(n => n!.Trilha) // Inclui a trilha do nível para verificação
                 .FirstOrDefaultAsync(q => q.IdQuestao == objRequest.IdQuestao);
 
             if (objQuestao == null)
@@ -340,7 +361,17 @@ namespace BitBeakAPI.Controllers
                 return NotFound("Informações do nível para a questão não estão disponíveis.");
             }
 
-            bool blnAcertou = false; 
+            if (objQuestao.Nivel.IdNivel != objRequest.IdNivel)
+            {
+                return BadRequest("A questão não pertence ao nível especificado.");
+            }
+
+            if (objQuestao.Nivel.IdTrilha != objRequest.IdTrilha)
+            {
+                return BadRequest("O nível não pertence à trilha especificada.");
+            }
+
+            bool blnAcertou = false;
 
             switch (objQuestao.Tipo)
             {
@@ -384,6 +415,7 @@ namespace BitBeakAPI.Controllers
             });
         }
 
+
         /// <summary>
         /// Função para obter uma questão aleaatória do Nível da Trilha
         /// </summary>
@@ -416,6 +448,88 @@ namespace BitBeakAPI.Controllers
             else
             {
                 return NotFound("Não foi possível encontrar uma questão aleatória.");
+            }
+        }
+
+        private async Task<ActionResult> ConcluirNivel(int idUsuario, int idTrilha, int idNivel)
+        {
+            try
+            {
+                // Verificar se o nível já foi concluído pelo usuário
+                var nivelConcluido = await _context.UsuarioNiveisConcluidos
+                    .FirstOrDefaultAsync(un => un.IdUsuario == idUsuario && un.IdTrilha == idTrilha && un.IdNivel == idNivel);
+                if (nivelConcluido != null)
+                {
+                    return BadRequest("O usuário já concluiu este nível.");
+                }
+
+                // Criar o registro de conclusão do nível
+                var novaNivelConclusao = new ModelUsuarioNivelConcluido
+                {
+                    IdUsuario = idUsuario,
+                    IdTrilha = idTrilha,
+                    IdNivel = idNivel
+                };
+
+                // Salvar no banco de dados
+                _context.UsuarioNiveisConcluidos.Add(novaNivelConclusao);
+                await _context.SaveChangesAsync();
+
+                return Ok("Nível concluído com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        private async Task<bool> VerificarConclusaoTrilha(int idUsuario, int idTrilha)
+        {
+            // Buscar todos os níveis dessa trilha
+            var niveisDaTrilha = await _context.NiveisTrilha.Where(n => n.IdTrilha == idTrilha).ToListAsync();
+
+            // Verificar se todos os níveis da trilha foram concluídos pelo usuário
+            foreach (var nivel in niveisDaTrilha)
+            {
+                var nivelConcluido = await _context.UsuarioNiveisConcluidos
+                    .FirstOrDefaultAsync(un => un.IdUsuario == idUsuario && un.IdTrilha == idTrilha && un.IdNivel == nivel.IdNivel);
+                if (nivelConcluido == null)
+                {
+                    return false; // Se algum nível não foi concluído, retorna falso
+                }
+            }
+
+            return true; // Todos os níveis foram concluídos
+        }
+
+        private async Task<ActionResult> ConcluirTrilha(int idUsuario, int idTrilha)
+        {
+            try
+            {
+                // Verificar se a trilha já foi concluída pelo usuário
+                var trilhaConcluida = await _context.UsuarioTrilhasConcluidas
+                    .FirstOrDefaultAsync(ut => ut.IdUsuario == idUsuario && ut.IdTrilha == idTrilha);
+                if (trilhaConcluida != null)
+                {
+                    return BadRequest("O usuário já concluiu esta trilha.");
+                }
+
+                // Criar o registro de conclusão da trilha
+                var novaTrilhaConclusao = new ModelUsuarioTrilhaConcluida
+                {
+                    IdUsuario = idUsuario,
+                    IdTrilha = idTrilha
+                };
+
+                // Salvar no banco de dados
+                _context.UsuarioTrilhasConcluidas.Add(novaTrilhaConclusao);
+                await _context.SaveChangesAsync();
+
+                return Ok("Trilha concluída com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 
@@ -549,11 +663,13 @@ namespace BitBeakAPI.Controllers
         {
             public int IdUsuario { get; set; }
             public int IdQuestao { get; set; }
+            public int IdNivel { get; set; } // Adicionada propriedade para o ID do nível
+            public int IdTrilha { get; set; } // Adicionada propriedade para o ID da trilha
             public int IdOpcao { get; set; } // Usado para questões do tipo opção
 
             public string RespostaUsuario { get; set; } = string.Empty;
             public List<RespostaLacuna> RespostasLacunas { get; set; } = new List<RespostaLacuna>(); // Usado para questões do tipo lacuna
-            
+
             // Classe interna para respostas de lacuna
             public class RespostaLacuna
             {
