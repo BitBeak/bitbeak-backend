@@ -177,7 +177,6 @@ namespace BitBeakAPI.Controllers
             }
         }
 
-
         #endregion
 
         #region Funções de POST e PUT
