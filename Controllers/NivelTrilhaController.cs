@@ -29,11 +29,16 @@ namespace BitBeakAPI.Controllers
         [HttpGet("ListarDadosNivel/{intId}")]
         public async Task<ActionResult<ModelNivelTrilha>> ListarDadosNivel(int intId)
         {
-            ModelNivelTrilha? objModelNivel = new();
-
             try
             {
-                objModelNivel = await _context.NiveisTrilha.FindAsync(intId);
+                var objModelNivel = await _context.NiveisTrilha
+                    .Include(nivel => nivel.Questoes)
+                        .ThenInclude(questao => questao.Opcoes) // Carrega as opções das questões
+                    .Include(nivel => nivel.Questoes)
+                        .ThenInclude(questao => questao.Lacunas) // Carrega as lacunas das questões
+                    .Include(nivel => nivel.Questoes)
+                        .ThenInclude(questao => questao.CodeFill) // Carrega os CodeFills das questões
+                    .FirstOrDefaultAsync(nivel => nivel.IdNivel == intId);
 
                 if (objModelNivel == null)
                 {
@@ -48,8 +53,8 @@ namespace BitBeakAPI.Controllers
             }
         }
 
-        // POST: api/Niveis
-        [HttpPost("CriarNivel")]
+    // POST: api/Niveis
+    [HttpPost("CriarNivel")]
         public async Task<ActionResult<ModelNivelTrilha>> CriarNivel(ModelNivelTrilha objModelNivel)
         {
             try

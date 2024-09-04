@@ -122,12 +122,14 @@ namespace BitBeakAPI.Controllers
             try
             {
                 var objQuestoesRespondidas = new HashSet<int>();
+                var tiposQuestoesRespondidas = new Dictionary<TipoQuestao, int>(); 
                 int intContadorAcertos = 0;
                 int intContadorErros = 0;
 
                 var objPrimeiraQuestao = await ObterProximaQuestao(objIniciarNivel.IdTrilha,
                                                                    objIniciarNivel.IdNivelTrilha,
-                                                                   objQuestoesRespondidas);
+                                                                   objQuestoesRespondidas,
+                                                                   tiposQuestoesRespondidas); 
 
                 if (objPrimeiraQuestao is ModelQuestao objDadosQuestao)
                 {
@@ -137,6 +139,7 @@ namespace BitBeakAPI.Controllers
                         Questao = objDadosQuestao,
                         IdUsuario = objIniciarNivel.IdUsuario,
                         QuestoesRespondidas = objQuestoesRespondidas,
+                        TiposQuestoesRespondidas = tiposQuestoesRespondidas,
                         ContadorAcertos = intContadorAcertos,
                         ContadorErros = intContadorErros
                     });
@@ -150,8 +153,8 @@ namespace BitBeakAPI.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            
         }
+
 
         /// <summary>
         /// Função para buscar uma questão aleatória
@@ -160,7 +163,7 @@ namespace BitBeakAPI.Controllers
         /// <param name="idNivelTrilha"></param>
         /// <param name="objQuestoesRespondidas"></param>
         /// <returns></returns>
-        private async Task<ModelQuestao?> ObterProximaQuestao(int idTrilha, int idNivelTrilha, HashSet<int> objQuestoesRespondidas)
+        private async Task<ModelQuestao?> ObterProximaQuestao(int idTrilha, int idNivelTrilha, HashSet<int> objQuestoesRespondidas, Dictionary<TipoQuestao, int> tiposQuestoesRespondidas)
         {
             // Obter o resultado da busca por uma questão aleatória
             var objResultadoAleatoria = await ObterIdQuestaoAleatoria(idTrilha, idNivelTrilha);
@@ -171,7 +174,7 @@ namespace BitBeakAPI.Controllers
                 // Verificar se a questão já foi respondida (Se sim, busca outra)
                 if (objQuestoesRespondidas.Contains(idQuestaoAleatoria))
                 {
-                    return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas); // Tenta obter outra questão
+                    return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas); // Tenta obter outra questão
                 }
 
                 // Buscar os dados da questão usando o ID obtido
@@ -179,6 +182,14 @@ namespace BitBeakAPI.Controllers
 
                 if (objResultadoDados is ModelQuestao objDadosQuestao)
                 {
+                    // Verificar se o tipo da questão já foi respondido duas vezes
+                    if (tiposQuestoesRespondidas.ContainsKey(objDadosQuestao.Tipo) && tiposQuestoesRespondidas[objDadosQuestao.Tipo] >= 2)
+                    {
+                        // Se já foi respondido duas vezes, tenta buscar outra questão
+                        return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas);
+                    }
+
+                    // Retorna a questão, pois ela não foi respondida duas vezes
                     return objDadosQuestao;
                 }
                 else
@@ -228,14 +239,35 @@ namespace BitBeakAPI.Controllers
                 var objResultadoResposta = await VerificarResposta(objRespostaRequest);
 
                 if (objResultadoResposta.Result is OkObjectResult okResultResposta &&
-                   ((VerificarRespostaResponse)okResultResposta.Value!).Acertou)
+                    okResultResposta.Value is VerificarRespostaResponse objVerificarResposta)
                 {
-                    objRequest.ContadorAcertos++;                                        // Adicionar +1 no contador de acertos
-                    objRequest.QuestoesRespondidas!.Add(objRequest.IdQuestaoAleatoria);  // Inserir id da questão em Questoes Respondidas
+                    // Atualizar contador de acertos ou erros
+                    if (objVerificarResposta.Acertou)
+                    {
+                        objRequest.ContadorAcertos++;
+                    }
+                    else
+                    {
+                        objRequest.ContadorErros++;
+                    }
+
+                    // Adicionar a questão às questões respondidas
+                    objRequest.QuestoesRespondidas!.Add(objRequest.IdQuestaoAleatoria);
+
+                    // Atualizar o contador de tipos de questões respondidas, independentemente de acerto ou erro
+                    if (objRequest.TiposQuestoesRespondidas.ContainsKey(objVerificarResposta.TipoQuestao))
+                    {
+                        objRequest.TiposQuestoesRespondidas[objVerificarResposta.TipoQuestao]++;
+                    }
+                    else
+                    {
+                        objRequest.TiposQuestoesRespondidas[objVerificarResposta.TipoQuestao] = 1;
+                    }
                 }
                 else
                 {
-                    objRequest.ContadorErros++; // Adicionar +1 no contador de erros
+                    // Tratar casos em que o resultado da resposta não é um sucesso, se necessário
+                    return BadRequest("Erro ao verificar resposta.");
                 }
 
                 if (objRequest.ContadorAcertos == 5)
@@ -311,7 +343,8 @@ namespace BitBeakAPI.Controllers
 
                 var objProximaQuestao = await ObterProximaQuestao(objRequest.IdTrilha,
                                                                   objRequest.IdNivelTrilha,
-                                                                  objRequest.QuestoesRespondidas!);
+                                                                  objRequest.QuestoesRespondidas!,
+                                                                  objRequest.TiposQuestoesRespondidas);
 
                 if (objProximaQuestao is ModelQuestao objDadosQuestao)
                 {
@@ -322,7 +355,8 @@ namespace BitBeakAPI.Controllers
                         IdUsuario = objRequest.IdUsuario,
                         QuestoesRespondidas = objRequest.QuestoesRespondidas,
                         ContadorAcertos = objRequest.ContadorAcertos,
-                        ContadorErros = objRequest.ContadorErros
+                        ContadorErros = objRequest.ContadorErros,
+                        TiposQuestoesRespondidas = objRequest.TiposQuestoesRespondidas
                     });
                 }
                 else
@@ -344,13 +378,12 @@ namespace BitBeakAPI.Controllers
         [NonAction]
         public async Task<ActionResult<VerificarRespostaResponse>> VerificarResposta(VerificarRespostaRequest objRequest)
         {
-            // Buscar a questão e incluir as relações necessárias
             var objQuestao = await _context.Questoes
                 .Include(q => q.Opcoes)
                 .Include(q => q.Lacunas)
                 .Include(q => q.CodeFill)
                 .Include(q => q.Nivel)
-                .ThenInclude(n => n!.Trilha) // Inclui a trilha do nível para verificação
+                .ThenInclude(n => n!.Trilha)
                 .FirstOrDefaultAsync(q => q.IdQuestao == objRequest.IdQuestao);
 
             if (objQuestao == null)
@@ -413,7 +446,8 @@ namespace BitBeakAPI.Controllers
             return Ok(new VerificarRespostaResponse
             {
                 Acertou = blnAcertou,
-                NivelAtual = objQuestao.Nivel!.Nivel
+                NivelAtual = objQuestao.Nivel!.Nivel,
+                TipoQuestao = objQuestao.Tipo // Atribuindo o tipo da questão
             });
         }
 
@@ -653,24 +687,24 @@ namespace BitBeakAPI.Controllers
             public int IdQuestaoAleatoria { get; set; }
             public int IdOpcaoEscolhidaUsuario { get; set; }
             public List<RespostaLacuna> RespostasLacunas { get; set; } = new List<RespostaLacuna>();
-
             public string RespostaUsuario { get; set; } = string.Empty;
-
             public HashSet<int>? QuestoesRespondidas { get; set; }
             public int ContadorAcertos { get; set; }
             public int ContadorErros { get; set; }
+
+            public Dictionary<TipoQuestao, int> TiposQuestoesRespondidas { get; set; } = new Dictionary<TipoQuestao, int>();
         }
 
         public class VerificarRespostaRequest
         {
             public int IdUsuario { get; set; }
             public int IdQuestao { get; set; }
-            public int IdNivel { get; set; } // Adicionada propriedade para o ID do nível
-            public int IdTrilha { get; set; } // Adicionada propriedade para o ID da trilha
-            public int IdOpcao { get; set; } // Usado para questões do tipo opção
+            public int IdNivel { get; set; } 
+            public int IdTrilha { get; set; } 
+            public int IdOpcao { get; set; } 
 
             public string RespostaUsuario { get; set; } = string.Empty;
-            public List<RespostaLacuna> RespostasLacunas { get; set; } = new List<RespostaLacuna>(); // Usado para questões do tipo lacuna
+            public List<RespostaLacuna> RespostasLacunas { get; set; } = new List<RespostaLacuna>(); 
 
             // Classe interna para respostas de lacuna
             public class RespostaLacuna
@@ -687,6 +721,7 @@ namespace BitBeakAPI.Controllers
             public int NivelAtual { get; set; }
             public int ExperienciaAtual { get; set; }
             public int PenasAtuais { get; set; }
+            public TipoQuestao TipoQuestao { get; set; }
         }
 
         public class RespostaLacuna
