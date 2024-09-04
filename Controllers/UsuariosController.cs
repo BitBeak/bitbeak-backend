@@ -22,6 +22,26 @@ namespace BitBeakAPI.Controllers
             _emailService = emailService;
         }
 
+        private string GerarCodigoDeAmizade()
+        {
+            string strCodigoAmizade;
+            bool blnCodigoExiste;
+
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+
+            do
+            {
+                strCodigoAmizade = new string(Enumerable.Repeat(chars, 10)
+                    .Select(s => s[random.Next(s.Length)]).ToArray());
+
+                blnCodigoExiste = _context.Usuarios.Any(u => u.CodigoDeAmizade == strCodigoAmizade);
+            }
+            while (blnCodigoExiste); 
+
+            return strCodigoAmizade;
+        }
+
         #region Funções de GET
         // GET: api/Usuarios
         /// <summary>
@@ -184,7 +204,6 @@ namespace BitBeakAPI.Controllers
         {
             try
             {
-                // Verificar se o e-mail já existe
                 var objUsuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == objUsuario.Email);
 
                 if (objUsuarioExistente != null)
@@ -192,13 +211,13 @@ namespace BitBeakAPI.Controllers
                     return Conflict("Já existe uma conta com este e-mail.");
                 }
 
-                // Criptografar a senha fornecida pelo usuário antes de salvar
                 if (!string.IsNullOrEmpty(objUsuario.Senha))
                 {
                     objUsuario.SenhaCriptografada = Security.Criptografar(objUsuario.Senha);
                 }
 
                 objUsuario.NivelUsuario = 1;
+                objUsuario.CodigoDeAmizade = GerarCodigoDeAmizade();
 
                 _context.Usuarios.Add(objUsuario);
                 await _context.SaveChangesAsync();

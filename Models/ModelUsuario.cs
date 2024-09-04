@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,13 +10,16 @@ namespace BitBeakAPI.Models
         #region Usuario
 
         [Key] public int IdUsuario { get; set; }
-
         public string Nome { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string? SenhaCriptografada { get; set; }  // Senha criptografada
+
+        public string CodigoDeAmizade { get; set; } = string.Empty;
+
+        public ICollection<ModelAmizade> Amigos { get; set; } = new List<ModelAmizade>();
+        public string? SenhaCriptografada { get; set; }  
 
         [NotMapped]
-        public string Senha { get; set; } = string.Empty; // Senha em texto simples para entrada
+        public string Senha { get; set; } = string.Empty; 
 
         #endregion
 
@@ -40,5 +44,6 @@ namespace BitBeakAPI.Models
         public int Penas { get; set; }
 
         #endregion
+
     }
 }

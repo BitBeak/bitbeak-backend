@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    [Migration("20240827222633_AddUsuarioNivelConcluido")]
-    partial class AddUsuarioNivelConcluido
+    [Migration("20240904145513_AdicionarAmizades")]
+    partial class AdicionarAmizades
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -186,6 +186,9 @@ namespace BitBeakAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdUsuario"));
 
+                    b.Property<string>("CodigoDeAmizade")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -292,6 +295,29 @@ namespace BitBeakAPI.Migrations
                     b.ToTable("OpcoesResposta");
                 });
 
+            modelBuilder.Entity("ModelAmizade", b =>
+                {
+                    b.Property<int>("IdAmizade")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdAmizade"));
+
+                    b.Property<int>("IdAmigo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdAmizade");
+
+                    b.HasIndex("IdAmigo");
+
+                    b.HasIndex("IdUsuario");
+
+                    b.ToTable("Amizades");
+                });
+
             modelBuilder.Entity("BitBeakAPI.Models.CodeFill", b =>
                 {
                     b.HasOne("BitBeakAPI.Models.ModelQuestao", "Questao")
@@ -345,6 +371,25 @@ namespace BitBeakAPI.Migrations
                     b.Navigation("Questao");
                 });
 
+            modelBuilder.Entity("ModelAmizade", b =>
+                {
+                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Amigo")
+                        .WithMany()
+                        .HasForeignKey("IdAmigo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Usuario")
+                        .WithMany("Amigos")
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Amigo");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
                 {
                     b.Navigation("Questoes");
@@ -362,6 +407,11 @@ namespace BitBeakAPI.Migrations
             modelBuilder.Entity("BitBeakAPI.Models.ModelTrilha", b =>
                 {
                     b.Navigation("Niveis");
+                });
+
+            modelBuilder.Entity("BitBeakAPI.Models.ModelUsuario", b =>
+                {
+                    b.Navigation("Amigos");
                 });
 #pragma warning restore 612, 618
         }

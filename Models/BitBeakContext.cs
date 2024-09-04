@@ -13,10 +13,25 @@
             public DbSet<ModelNivelUsuario> NiveisUsuario { get; set; }
             public DbSet<ModelUsuarioTrilhaConcluida> UsuarioTrilhasConcluidas { get; set; }
             public DbSet<ModelUsuarioNivelConcluido> UsuarioNiveisConcluidos { get; set; }
+            public DbSet<ModelAmizade> Amizades { get; set; }
 
-        public BitBeakContext(DbContextOptions<BitBeakContext> options) : base(options)
-        {
-        }
+            public BitBeakContext(DbContextOptions<BitBeakContext> options) : base(options)
+            {
+            }
+
+            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            {
+                if (!optionsBuilder.IsConfigured)
+                {
+                    optionsBuilder.UseSqlServer("Server=tcp:bitbeak.database.windows.net,1433;Initial Catalog=BitBeak;Persist Security Info=False;User ID=BitBeak;Password=Tcc@2024;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;", sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5, 
+                            maxRetryDelay: TimeSpan.FromSeconds(30), 
+                            errorNumbersToAdd: null);
+                    });
+                }
+            }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
@@ -37,6 +52,18 @@
                     .HasMany(q => q.Lacunas)
                     .WithOne(l => l.Questao)
                     .HasForeignKey(l => l.IdQuestao);
+
+                modelBuilder.Entity<ModelAmizade>()
+                        .HasOne(a => a.Usuario)
+                        .WithMany(u => u.Amigos)
+                        .HasForeignKey(a => a.IdUsuario)
+                        .OnDelete(DeleteBehavior.Restrict); 
+
+                modelBuilder.Entity<ModelAmizade>()
+                    .HasOne(a => a.Amigo)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdAmigo)
+                    .OnDelete(DeleteBehavior.Restrict);
             }
         }
     }

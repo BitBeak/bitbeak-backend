@@ -58,6 +58,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// **Aplique as migrações ao iniciar a aplicação**
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<BitBeakContext>();
+    dbContext.Database.Migrate();  // Aplica as migrações pendentes
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
