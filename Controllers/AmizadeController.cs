@@ -6,7 +6,7 @@ namespace BitBeakAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AmizadeController : Controller
+    public class AmizadeController : ControllerBase
 
     {
         private readonly BitBeakContext _context;
@@ -83,6 +83,7 @@ namespace BitBeakAPI.Controllers
                 .Include(a => a.Amigo)
                 .Select(a => new
                 {
+                    IdUsuario = a.IdUsuario,
                     Nome = a.Amigo.Nome,
                     Email = a.Amigo.Email,
                     NivelUsuario = a.Amigo.NivelUsuario

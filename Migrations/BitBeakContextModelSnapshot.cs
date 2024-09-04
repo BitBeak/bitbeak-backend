@@ -316,6 +316,52 @@ namespace BitBeakAPI.Migrations
                     b.ToTable("Amizades");
                 });
 
+            modelBuilder.Entity("ModelDesafio", b =>
+                {
+                    b.Property<int>("IdDesafio")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdDesafio"));
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("DesafianteJogando")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Finalizado")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("IdDesafiado")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdDesafiante")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdTrilha")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InsigniasDesafiado")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InsigniasDesafiante")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NivelAtual")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdDesafio");
+
+                    b.HasIndex("IdDesafiado");
+
+                    b.HasIndex("IdDesafiante");
+
+                    b.HasIndex("IdTrilha");
+
+                    b.ToTable("Desafios");
+                });
+
             modelBuilder.Entity("BitBeakAPI.Models.CodeFill", b =>
                 {
                     b.HasOne("BitBeakAPI.Models.ModelQuestao", "Questao")
@@ -386,6 +432,33 @@ namespace BitBeakAPI.Migrations
                     b.Navigation("Amigo");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("ModelDesafio", b =>
+                {
+                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiado")
+                        .WithMany()
+                        .HasForeignKey("IdDesafiado")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiante")
+                        .WithMany()
+                        .HasForeignKey("IdDesafiante")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BitBeakAPI.Models.ModelTrilha", "Trilha")
+                        .WithMany()
+                        .HasForeignKey("IdTrilha")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Desafiado");
+
+                    b.Navigation("Desafiante");
+
+                    b.Navigation("Trilha");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
