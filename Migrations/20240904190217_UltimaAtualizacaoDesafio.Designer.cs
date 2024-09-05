@@ -4,6 +4,7 @@ using BitBeakAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    partial class BitBeakContextModelSnapshot : ModelSnapshot
+    [Migration("20240904190217_UltimaAtualizacaoDesafio")]
+    partial class UltimaAtualizacaoDesafio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -348,10 +351,7 @@ namespace BitBeakAPI.Migrations
                     b.Property<int>("InsigniasDesafiante")
                         .HasColumnType("int");
 
-                    b.Property<int>("NivelDesafiado")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NivelDesafiante")
+                    b.Property<int>("NivelAtual")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UltimaAtualizacao")
@@ -368,36 +368,57 @@ namespace BitBeakAPI.Migrations
                     b.ToTable("Desafios");
                 });
 
-            modelBuilder.Entity("ModelHistoricoDesafio", b =>
+            modelBuilder.Entity("ModelDesafioPerguntasEspeciais", b =>
                 {
-                    b.Property<int>("IdHistoricoConfronto")
+                    b.Property<int>("IdPerguntaEspecial")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdHistoricoConfronto"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPerguntaEspecial"));
 
-                    b.Property<DateTime>("DataConfronto")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Enunciado")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("IdDesafiado")
+                    b.Property<int>("IdNivel")
                         .HasColumnType("int");
 
-                    b.Property<int>("IdDesafiante")
+                    b.Property<int>("IdTrilha")
                         .HasColumnType("int");
 
-                    b.Property<int>("IdDesafio")
+                    b.HasKey("IdPerguntaEspecial");
+
+                    b.HasIndex("IdNivel");
+
+                    b.HasIndex("IdTrilha");
+
+                    b.ToTable("PerguntasEspeciais");
+                });
+
+            modelBuilder.Entity("ModelDesafioPerguntasEspeciais+OpcaoRespostaEspecial", b =>
+                {
+                    b.Property<int>("IdOpcao")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("IdVencedor")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdOpcao"));
+
+                    b.Property<bool>("Correta")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("IdPerguntaEspecial")
                         .HasColumnType("int");
 
-                    b.HasKey("IdHistoricoConfronto");
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("IdDesafiado");
+                    b.HasKey("IdOpcao");
 
-                    b.HasIndex("IdDesafiante");
+                    b.HasIndex("IdPerguntaEspecial");
 
-                    b.ToTable("HistoricoDesafios");
+                    b.ToTable("OpcaoRespostaEspecial");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.CodeFill", b =>
@@ -499,23 +520,34 @@ namespace BitBeakAPI.Migrations
                     b.Navigation("Trilha");
                 });
 
-            modelBuilder.Entity("ModelHistoricoDesafio", b =>
+            modelBuilder.Entity("ModelDesafioPerguntasEspeciais", b =>
                 {
-                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiado")
+                    b.HasOne("BitBeakAPI.Models.ModelNivelTrilha", "NivelTrilha")
                         .WithMany()
-                        .HasForeignKey("IdDesafiado")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("IdNivel")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiante")
+                    b.HasOne("BitBeakAPI.Models.ModelTrilha", "Trilha")
                         .WithMany()
-                        .HasForeignKey("IdDesafiante")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("IdTrilha")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("Desafiado");
+                    b.Navigation("NivelTrilha");
 
-                    b.Navigation("Desafiante");
+                    b.Navigation("Trilha");
+                });
+
+            modelBuilder.Entity("ModelDesafioPerguntasEspeciais+OpcaoRespostaEspecial", b =>
+                {
+                    b.HasOne("ModelDesafioPerguntasEspeciais", "PerguntaEspecial")
+                        .WithMany("Opcoes")
+                        .HasForeignKey("IdPerguntaEspecial")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PerguntaEspecial");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
@@ -540,6 +572,11 @@ namespace BitBeakAPI.Migrations
             modelBuilder.Entity("BitBeakAPI.Models.ModelUsuario", b =>
                 {
                     b.Navigation("Amigos");
+                });
+
+            modelBuilder.Entity("ModelDesafioPerguntasEspeciais", b =>
+                {
+                    b.Navigation("Opcoes");
                 });
 #pragma warning restore 612, 618
         }

@@ -10,7 +10,8 @@ namespace BitBeakAPI.Models
         Pergunta,
         Lacuna,
         Codificacao,
-        CodeFill
+        CodeFill,
+        Desafio
     }
 
     public class ModelQuestao

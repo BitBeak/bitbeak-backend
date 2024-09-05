@@ -14,8 +14,8 @@
             public DbSet<ModelUsuarioTrilhaConcluida> UsuarioTrilhasConcluidas { get; set; }
             public DbSet<ModelUsuarioNivelConcluido> UsuarioNiveisConcluidos { get; set; }
             public DbSet<ModelAmizade> Amizades { get; set; }       
-
-            public DbSet<ModelDesafio> Desafios { get; set; }    
+            public DbSet<ModelDesafio> Desafios { get; set; }  
+            public DbSet<ModelHistoricoDesafio> HistoricoDesafios { get; set; } 
 
             public BitBeakContext(DbContextOptions<BitBeakContext> options) : base(options)
             {
@@ -77,6 +77,18 @@
                     .WithMany()
                     .HasForeignKey(d => d.IdDesafiado)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                modelBuilder.Entity<ModelHistoricoDesafio>()
+                   .HasOne(h => h.Desafiante)
+                   .WithMany()
+                   .HasForeignKey(h => h.IdDesafiante)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+                modelBuilder.Entity<ModelHistoricoDesafio>()
+                    .HasOne(h => h.Desafiado)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdDesafiado)
+                    .OnDelete(DeleteBehavior.Restrict);
             }
         }
     }

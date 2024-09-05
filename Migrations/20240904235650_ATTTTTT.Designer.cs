@@ -4,6 +4,7 @@ using BitBeakAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    partial class BitBeakContextModelSnapshot : ModelSnapshot
+    [Migration("20240904235650_ATTTTTT")]
+    partial class ATTTTTT
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -368,38 +371,6 @@ namespace BitBeakAPI.Migrations
                     b.ToTable("Desafios");
                 });
 
-            modelBuilder.Entity("ModelHistoricoDesafio", b =>
-                {
-                    b.Property<int>("IdHistoricoConfronto")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdHistoricoConfronto"));
-
-                    b.Property<DateTime>("DataConfronto")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("IdDesafiado")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdDesafiante")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdDesafio")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdVencedor")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdHistoricoConfronto");
-
-                    b.HasIndex("IdDesafiado");
-
-                    b.HasIndex("IdDesafiante");
-
-                    b.ToTable("HistoricoDesafios");
-                });
-
             modelBuilder.Entity("BitBeakAPI.Models.CodeFill", b =>
                 {
                     b.HasOne("BitBeakAPI.Models.ModelQuestao", "Questao")
@@ -497,25 +468,6 @@ namespace BitBeakAPI.Migrations
                     b.Navigation("Desafiante");
 
                     b.Navigation("Trilha");
-                });
-
-            modelBuilder.Entity("ModelHistoricoDesafio", b =>
-                {
-                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiado")
-                        .WithMany()
-                        .HasForeignKey("IdDesafiado")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiante")
-                        .WithMany()
-                        .HasForeignKey("IdDesafiante")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Desafiado");
-
-                    b.Navigation("Desafiante");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>

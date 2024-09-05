@@ -33,11 +33,11 @@ namespace BitBeakAPI.Controllers
             {
                 var objModelNivel = await _context.NiveisTrilha
                     .Include(nivel => nivel.Questoes)
-                        .ThenInclude(questao => questao.Opcoes) // Carrega as opções das questões
+                        .ThenInclude(questao => questao.Opcoes) 
                     .Include(nivel => nivel.Questoes)
-                        .ThenInclude(questao => questao.Lacunas) // Carrega as lacunas das questões
+                        .ThenInclude(questao => questao.Lacunas) 
                     .Include(nivel => nivel.Questoes)
-                        .ThenInclude(questao => questao.CodeFill) // Carrega os CodeFills das questões
+                        .ThenInclude(questao => questao.CodeFill)
                     .FirstOrDefaultAsync(nivel => nivel.IdNivel == intId);
 
                 if (objModelNivel == null)

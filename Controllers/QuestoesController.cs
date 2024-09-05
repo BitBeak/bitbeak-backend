@@ -54,7 +54,6 @@ namespace BitBeakAPI.Controllers
 
             try
             {
-                // Verifica se existe um nível e define o objeto, se não houver, deixar como null
                 if (objModelQuestao.IdNivel.HasValue)
                 {
                     objNivel = await _context.NiveisTrilha.FindAsync(objModelQuestao.IdNivel.Value);
@@ -67,17 +66,15 @@ namespace BitBeakAPI.Controllers
                     objModelQuestao.Nivel = objNivel;
                 }
 
-                // Adicionar a questão ao contexto para obter um ID
-                objOpcoes = objModelQuestao.Opcoes.ToList(); // Clonar as opções para adicionar depois
-                objLacunas = objModelQuestao.Lacunas.ToList(); // Clonar as lacunas para adicionar depois
+                objOpcoes = objModelQuestao.Opcoes.ToList(); 
+                objLacunas = objModelQuestao.Lacunas.ToList(); 
 
-                objModelQuestao.Opcoes.Clear(); // Limpar as opções antes de adicionar a questão
-                objModelQuestao.Lacunas.Clear(); // Limpar as lacunas antes de adicionar a questão
+                objModelQuestao.Opcoes.Clear();
+                objModelQuestao.Lacunas.Clear();
 
                 _context.Questoes.Add(objModelQuestao);
                 await _context.SaveChangesAsync();
 
-                // Atribuir a questão às opções após ter um ID
                 foreach (OpcaoResposta objOpcao in objOpcoes)
                 {
                     objOpcao.IdOpcao = 0;
@@ -86,7 +83,6 @@ namespace BitBeakAPI.Controllers
                     _context.OpcoesResposta.Add(objOpcao);
                 }
 
-                // Atribuir a questão às lacunas após ter um ID
                 foreach (Lacuna objLacuna in objLacunas)
                 {
                     objLacuna.IdLacuna = 0;
@@ -97,7 +93,6 @@ namespace BitBeakAPI.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Adicionar as opções e lacunas de volta à questão para retorno
                 objModelQuestao.Opcoes = objOpcoes;
                 objModelQuestao.Lacunas = objLacunas;
 
@@ -131,14 +126,12 @@ namespace BitBeakAPI.Controllers
             objQuestaoExistente.Tipo = objModelQuestao.Tipo;
             objQuestaoExistente.SolucaoEsperada = objModelQuestao.SolucaoEsperada ?? objQuestaoExistente.SolucaoEsperada;
 
-            // Atualizar as opções
             objQuestaoExistente.Opcoes.Clear();
             foreach (OpcaoResposta objOpcao in objModelQuestao.Opcoes)
             {
                 objQuestaoExistente.Opcoes.Add(objOpcao);
             }
 
-            // Atualizar as lacunas
             objQuestaoExistente.Lacunas.Clear();
             foreach (Lacuna objLacuna in objModelQuestao.Lacunas)
             {

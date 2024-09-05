@@ -46,7 +46,7 @@ namespace BitBeakAPI.Controllers
                 var objPayload = new
                 {
                     source_code = strBase64SourceCode,
-                    language_id = 63, // JavaScript no Judge0
+                    language_id = 63,
                     stdin = strBase64Stdin,
                     expected_output = strBase64ExpectedOutput
                 };
@@ -133,7 +133,6 @@ namespace BitBeakAPI.Controllers
 
                 if (objPrimeiraQuestao is ModelQuestao objDadosQuestao)
                 {
-                    // Retornar a primeira questão para o frontend
                     return Ok(new
                     {
                         Questao = objDadosQuestao,
@@ -155,7 +154,6 @@ namespace BitBeakAPI.Controllers
             }
         }
 
-
         /// <summary>
         /// Função para buscar uma questão aleatória
         /// </summary>
@@ -163,43 +161,37 @@ namespace BitBeakAPI.Controllers
         /// <param name="idNivelTrilha"></param>
         /// <param name="objQuestoesRespondidas"></param>
         /// <returns></returns>
+        [NonAction]
         private async Task<ModelQuestao?> ObterProximaQuestao(int idTrilha, int idNivelTrilha, HashSet<int> objQuestoesRespondidas, Dictionary<TipoQuestao, int> tiposQuestoesRespondidas)
         {
-            // Obter o resultado da busca por uma questão aleatória
             var objResultadoAleatoria = await ObterIdQuestaoAleatoria(idTrilha, idNivelTrilha);
 
-            // Se bem-sucedido - Extrair o ID da questão aleatória do resultado
             if (objResultadoAleatoria.Result is OkObjectResult okResult && okResult.Value is int idQuestaoAleatoria)
             {
-                // Verificar se a questão já foi respondida (Se sim, busca outra)
                 if (objQuestoesRespondidas.Contains(idQuestaoAleatoria))
                 {
-                    return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas); // Tenta obter outra questão
+                    return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas);
                 }
 
-                // Buscar os dados da questão usando o ID obtido
                 var objResultadoDados = await _questaoService.ListarDadosQuestao(idQuestaoAleatoria);
 
                 if (objResultadoDados is ModelQuestao objDadosQuestao)
                 {
-                    // Verificar se o tipo da questão já foi respondido duas vezes
                     if (tiposQuestoesRespondidas.ContainsKey(objDadosQuestao.Tipo) && tiposQuestoesRespondidas[objDadosQuestao.Tipo] >= 2)
                     {
-                        // Se já foi respondido duas vezes, tenta buscar outra questão
                         return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas);
                     }
 
-                    // Retorna a questão, pois ela não foi respondida duas vezes
                     return objDadosQuestao;
                 }
                 else
                 {
-                    return null; // Nenhuma questão encontrada para o ID
+                    return null; 
                 }
             }
             else
             {
-                return null; // Falha ao obter uma questão aleatória ou o resultado não é do tipo esperado
+                return null; 
             }
         }
 
@@ -241,7 +233,6 @@ namespace BitBeakAPI.Controllers
                 if (objResultadoResposta.Result is OkObjectResult okResultResposta &&
                     okResultResposta.Value is VerificarRespostaResponse objVerificarResposta)
                 {
-                    // Atualizar contador de acertos ou erros
                     if (objVerificarResposta.Acertou)
                     {
                         objRequest.ContadorAcertos++;
@@ -251,10 +242,8 @@ namespace BitBeakAPI.Controllers
                         objRequest.ContadorErros++;
                     }
 
-                    // Adicionar a questão às questões respondidas
                     objRequest.QuestoesRespondidas!.Add(objRequest.IdQuestaoAleatoria);
 
-                    // Atualizar o contador de tipos de questões respondidas, independentemente de acerto ou erro
                     if (objRequest.TiposQuestoesRespondidas.ContainsKey(objVerificarResposta.TipoQuestao))
                     {
                         objRequest.TiposQuestoesRespondidas[objVerificarResposta.TipoQuestao]++;
@@ -266,7 +255,6 @@ namespace BitBeakAPI.Controllers
                 }
                 else
                 {
-                    // Tratar casos em que o resultado da resposta não é um sucesso, se necessário
                     return BadRequest("Erro ao verificar resposta.");
                 }
 
@@ -370,11 +358,6 @@ namespace BitBeakAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Função para verificar se a resposta foi correta
-        /// </summary>
-        /// <param name="objRequest"></param>
-        /// <returns></returns>
         [NonAction]
         public async Task<ActionResult<VerificarRespostaResponse>> VerificarResposta(VerificarRespostaRequest objRequest)
         {
@@ -451,13 +434,6 @@ namespace BitBeakAPI.Controllers
             });
         }
 
-
-        /// <summary>
-        /// Função para obter uma questão aleaatória do Nível da Trilha
-        /// </summary>
-        /// <param name="intIdTrilha">Obrigatório passar o Id da Trilha</param>
-        /// <param name="intIdNivel">Obrigatório passar o Id do Nível</param>
-        /// <returns>Retorna uma questão aleatória</returns>
         [HttpGet("{intIdTrilha}/Niveis/{intIdNivel}/ObterIdQuestaoAleatoria")]
         public async Task<ActionResult<int>> ObterIdQuestaoAleatoria(int intIdTrilha, int intIdNivel)
         {
@@ -472,8 +448,10 @@ namespace BitBeakAPI.Controllers
                 return NotFound("Nível não encontrado ou sem questões.");
             }
 
+            // Excluir questões do tipo Desafio
             var objQuestaoAleatoria = objNivelTrilha.Questoes
-                .OrderBy(q => Guid.NewGuid())
+                .Where(q => q.Tipo != TipoQuestao.Desafio) 
+                .OrderBy(q => Guid.NewGuid()) 
                 .Select(q => q.IdQuestao)
                 .FirstOrDefault();
 
@@ -487,6 +465,7 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        [NonAction]
         private async Task<ActionResult> ConcluirNivel(int idUsuario, int idTrilha, int idNivel)
         {
             try
@@ -519,6 +498,7 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        [NonAction]
         private async Task<bool> VerificarConclusaoTrilha(int idUsuario, int idTrilha)
         {
             // Buscar todos os níveis dessa trilha
@@ -538,6 +518,7 @@ namespace BitBeakAPI.Controllers
             return true; // Todos os níveis foram concluídos
         }
 
+        [NonAction]
         private async Task<ActionResult> ConcluirTrilha(int idUsuario, int idTrilha)
         {
             try

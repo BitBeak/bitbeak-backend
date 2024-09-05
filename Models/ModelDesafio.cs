@@ -25,15 +25,20 @@ public class ModelDesafio
     [ForeignKey("IdTrilha")]
     public ModelTrilha? Trilha { get; set; }
 
-    public int NivelAtual { get; set; } = 1; 
-
     public bool DesafianteJogando { get; set; } = true;
 
     public int InsigniasDesafiante { get; set; } = 0; 
 
-    public int InsigniasDesafiado { get; set; } = 0; 
+    public int InsigniasDesafiado { get; set; } = 0;
+
+    public int NivelDesafiante { get; set; }
+
+    public int NivelDesafiado { get; set; }
 
     public DateTime DataCriacao { get; set; } = DateTime.Now;
 
-    public bool Finalizado { get; set; } = false; 
+    public DateTime UltimaAtualizacao { get; set; } = DateTime.Now;
+
+    public bool Finalizado { get; set; } = false;
+
 }

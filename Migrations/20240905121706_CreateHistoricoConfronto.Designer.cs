@@ -4,6 +4,7 @@ using BitBeakAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BitBeakAPI.Migrations
 {
     [DbContext(typeof(BitBeakContext))]
-    partial class BitBeakContextModelSnapshot : ModelSnapshot
+    [Migration("20240905121706_CreateHistoricoConfronto")]
+    partial class CreateHistoricoConfronto
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -393,10 +396,6 @@ namespace BitBeakAPI.Migrations
 
                     b.HasKey("IdHistoricoConfronto");
 
-                    b.HasIndex("IdDesafiado");
-
-                    b.HasIndex("IdDesafiante");
-
                     b.ToTable("HistoricoDesafios");
                 });
 
@@ -497,25 +496,6 @@ namespace BitBeakAPI.Migrations
                     b.Navigation("Desafiante");
 
                     b.Navigation("Trilha");
-                });
-
-            modelBuilder.Entity("ModelHistoricoDesafio", b =>
-                {
-                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiado")
-                        .WithMany()
-                        .HasForeignKey("IdDesafiado")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BitBeakAPI.Models.ModelUsuario", "Desafiante")
-                        .WithMany()
-                        .HasForeignKey("IdDesafiante")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Desafiado");
-
-                    b.Navigation("Desafiante");
                 });
 
             modelBuilder.Entity("BitBeakAPI.Models.ModelNivelTrilha", b =>
