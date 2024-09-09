@@ -65,7 +65,7 @@ namespace BitBeakAPI.Controllers
 
                 if (objPrimeiraQuestao is ModelQuestao objDadosQuestao)
                 {
-                    ModelDesafio objDesafio = new ()
+                    ModelDesafio objDesafio = new()
                     {
                         IdDesafiante = objDesafioRequest.IdDesafiante,
                         IdDesafiado = objDesafioRequest.IdDesafiado,
@@ -75,11 +75,12 @@ namespace BitBeakAPI.Controllers
                         DesafianteJogando = true,
                     };
 
-                    _context.Desafios.Add(objDesafio);  
+                    _context.Desafios.Add(objDesafio);
                     await _context.SaveChangesAsync();
 
                     return Ok(new
                     {
+                        IdDesafio = objDesafio.IdDesafio,
                         Questao = objDadosQuestao,
                         IdUsuario = objDesafioRequest.IdDesafiante,
                         QuestoesRespondidas = objQuestoesRespondidas,
@@ -183,6 +184,7 @@ namespace BitBeakAPI.Controllers
 
                             return Ok(new
                             {
+                                IdDesafio = objDesafio.IdDesafio,
                                 PerguntaEspecial = objPerguntaEspecial,
                                 Questao = objVerificarResposta,
                                 ProximaFase = "Questão Especial",
@@ -257,6 +259,7 @@ namespace BitBeakAPI.Controllers
                 {
                     return Ok(new
                     {
+                        IdDesafio = objDesafio.IdDesafio,
                         Questao = objDadosQuestao,
                         IdUsuario = objRequest.IdUsuario,
                         QuestoesRespondidas = objRequest.QuestoesRespondidas,
@@ -392,6 +395,7 @@ namespace BitBeakAPI.Controllers
             {
                 return Ok(new
                 {
+                    IdDesafio = objDesafio.IdDesafio, 
                     Questao = objDadosQuestao,
                     QuestoesRespondidas = objQuestoesRespondidas,
                     TiposQuestoesRespondidas = objTiposQuestoesRespondidas,
