@@ -41,4 +41,6 @@ public class ModelDesafio
 
     public bool Finalizado { get; set; } = false;
 
+    public bool StatusAceiteDesafio { get; set; } = true;
+
 }

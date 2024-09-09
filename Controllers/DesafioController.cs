@@ -108,13 +108,20 @@ namespace BitBeakAPI.Controllers
             // Verificar qual é o nível do jogador atual (Desafiante ou Desafiado)
             int intJogadorAtualNivel = objDesafio!.DesafianteJogando ? objDesafio.NivelDesafiante : objDesafio.NivelDesafiado;
 
-            if (objDesafio == null)
-            {
-                return NotFound("Desafio não encontrado.");
-            }
-
             try
             {
+
+                if (objDesafio == null)
+                {
+                    return NotFound("Desafio não encontrado.");
+                }
+
+                if (objDesafio.StatusAceiteDesafio && objRequest.IdUsuario == objDesafio.IdDesafiado)
+                {
+                    objDesafio.StatusAceiteDesafio = false;
+                    await _context.SaveChangesAsync();
+                }
+
                 if ((objDesafio.DesafianteJogando && objRequest.IdUsuario != objDesafio.IdDesafiante) ||
                     (!objDesafio.DesafianteJogando && objRequest.IdUsuario != objDesafio.IdDesafiado))
                 {
@@ -443,6 +450,49 @@ namespace BitBeakAPI.Controllers
                 }
             });
         }
+
+        [HttpGet("ListarDesafiosPendentes/{intIdUsuario}")]
+        public async Task<ActionResult> ListarDesafiosPendentes(int intIdUsuario)
+        {
+            var objDesafiosPendentes = await _context.Desafios
+                .Where(d => d.IdDesafiado == intIdUsuario && d.StatusAceiteDesafio && !d.Finalizado)
+                .Include(d => d.Desafiante)
+                .Include(d => d.Trilha)
+                .ToListAsync();
+
+            if (!objDesafiosPendentes.Any())
+            {
+                return NotFound("Nenhum desafio pendente para esse usuário.");
+            }
+
+            var objListaDesafios = objDesafiosPendentes.Select(d => new
+            {
+                IdDesafio = d.IdDesafio,
+                NomeDesafiante = d.Desafiante!.Nome,
+                Trilha = d.Trilha != null ? d.Trilha.Nome : "Trilha não encontrada",
+                DataCriacao = d.DataCriacao
+            }).ToList();
+
+            return Ok(objListaDesafios);
+        }
+
+        [HttpPost("NegarDesafio/{intIdDesafio}")]
+        public async Task<ActionResult> NegarDesafio(int intIdDesafio)
+        {
+            var desafio = await _context.Desafios.FirstOrDefaultAsync(d => d.IdDesafio == intIdDesafio && d.StatusAceiteDesafio);
+
+            if (desafio == null)
+            {
+                return NotFound("Desafio não encontrado ou já foi aceito.");
+            }
+
+            desafio.Finalizado = true;
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Desafio negado com sucesso.");
+        }
+
 
         #region Obter Questão
         [NonAction]
