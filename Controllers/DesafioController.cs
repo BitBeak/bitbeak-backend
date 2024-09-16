@@ -27,6 +27,11 @@ namespace BitBeakAPI.Controllers
             _strApiKey = Environment.GetEnvironmentVariable("RAPIDAPI_KEY")!;
         }
 
+        /// <summary>
+        /// Função para iniciar um desafio
+        /// </summary>
+        /// <param name="objDesafioRequest"></param>
+        /// <returns></returns>
         [HttpPost("IniciarDesafio")]
         public async Task<ActionResult> IniciarDesafio(IniciarDesafioRequest objDesafioRequest)
         {
@@ -100,6 +105,11 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Função para responder questão (desafio)
+        /// </summary>
+        /// <param name="objRequest"></param>
+        /// <returns></returns>
         [HttpPost("ResponderQuestaoDesafio")]
         public async Task<ActionResult> ResponderQuestaoDesafio(ResponderQuestaoDesafioRequest objRequest)
         {
@@ -279,6 +289,11 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Função para Listar os desafios em aberto
+        /// </summary>
+        /// <param name="intIdUsuario"></param>
+        /// <returns></returns>
         [HttpGet("ListarDesafiosAbertos/{intIdUsuario}")]
         public async Task<ActionResult> ListarDesafiosAbertos(int intIdUsuario)
         {
@@ -311,6 +326,12 @@ namespace BitBeakAPI.Controllers
             return Ok(objListaDesafios);
         }
 
+        /// <summary>
+        /// Função para verificar se é a vez do usuário jogar
+        /// </summary>
+        /// <param name="idDesafio"></param>
+        /// <param name="idUsuario"></param>
+        /// <returns></returns>
         [HttpGet("VerificarVez/{idDesafio}/{idUsuario}")]
         public async Task<ActionResult> VerificarVez(int idDesafio, int idUsuario)
         {
@@ -364,6 +385,12 @@ namespace BitBeakAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Função para entrar no desafio após ele já ter sido iniciado
+        /// </summary>
+        /// <param name="idDesafio"></param>
+        /// <param name="idUsuario"></param>
+        /// <returns></returns>
         [HttpGet("EntrarNoDesafio/{idDesafio}/{idUsuario}")]
         public async Task<ActionResult> EntrarNoDesafio(int idDesafio, int idUsuario)
         {
@@ -455,6 +482,11 @@ namespace BitBeakAPI.Controllers
             });
         }
 
+        /// <summary>
+        /// Função para listar os desafios pendentes de aceite do usuário
+        /// </summary>
+        /// <param name="intIdUsuario"></param>
+        /// <returns></returns>
         [HttpGet("ListarDesafiosPendentes/{intIdUsuario}")]
         public async Task<ActionResult> ListarDesafiosPendentes(int intIdUsuario)
         {
@@ -480,9 +512,15 @@ namespace BitBeakAPI.Controllers
             return Ok(objListaDesafios);
         }
 
+        /// <summary>
+        /// Função parar negar desafio
+        /// </summary>
+        /// <param name="intIdDesafio"></param>
+        /// <returns></returns>
         [HttpPost("NegarDesafio/{intIdDesafio}")]
         public async Task<ActionResult> NegarDesafio(int intIdDesafio)
         {
+
             var desafio = await _context.Desafios.FirstOrDefaultAsync(d => d.IdDesafio == intIdDesafio && d.StatusAceiteDesafio);
 
             if (desafio == null)
@@ -496,7 +534,6 @@ namespace BitBeakAPI.Controllers
 
             return Ok("Desafio negado com sucesso.");
         }
-
 
         #region Obter Questão
         [NonAction]

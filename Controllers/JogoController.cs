@@ -129,7 +129,9 @@ namespace BitBeakAPI.Controllers
                 var objPrimeiraQuestao = await ObterProximaQuestao(objIniciarNivel.IdTrilha,
                                                                    objIniciarNivel.IdNivelTrilha,
                                                                    objQuestoesRespondidas,
-                                                                   tiposQuestoesRespondidas); 
+                                                                   tiposQuestoesRespondidas,
+                                                                   intContadorAcertos,
+                                                                   intContadorErros); 
 
                 if (objPrimeiraQuestao is ModelQuestao objDadosQuestao)
                 {
@@ -162,7 +164,7 @@ namespace BitBeakAPI.Controllers
         /// <param name="objQuestoesRespondidas"></param>
         /// <returns></returns>
         [NonAction]
-        private async Task<ModelQuestao?> ObterProximaQuestao(int idTrilha, int idNivelTrilha, HashSet<int> objQuestoesRespondidas, Dictionary<TipoQuestao, int> tiposQuestoesRespondidas)
+        private async Task<ModelQuestao> ObterProximaQuestao( int idTrilha, int idNivelTrilha, HashSet<int> objQuestoesRespondidas, Dictionary<TipoQuestao, int> tiposQuestoesRespondidas, int intContadorAcertos,int intContadorErros)
         {
             var objResultadoAleatoria = await ObterIdQuestaoAleatoria(idTrilha, idNivelTrilha);
 
@@ -170,28 +172,34 @@ namespace BitBeakAPI.Controllers
             {
                 if (objQuestoesRespondidas.Contains(idQuestaoAleatoria))
                 {
-                    return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas);
+                    return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas, intContadorAcertos, intContadorErros);
                 }
 
+                // Buscar os dados da questão obtida aleatoriamente
                 var objResultadoDados = await _questaoService.ListarDadosQuestao(idQuestaoAleatoria);
 
                 if (objResultadoDados is ModelQuestao objDadosQuestao)
                 {
+                    if (idTrilha == 1 && (intContadorAcertos + intContadorErros) == 6)
+                    {
+                        return objDadosQuestao;
+                    }
+
                     if (tiposQuestoesRespondidas.ContainsKey(objDadosQuestao.Tipo) && tiposQuestoesRespondidas[objDadosQuestao.Tipo] >= 2)
                     {
-                        return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas);
+                        return await ObterProximaQuestao(idTrilha, idNivelTrilha, objQuestoesRespondidas, tiposQuestoesRespondidas, intContadorAcertos, intContadorErros);
                     }
 
                     return objDadosQuestao;
                 }
                 else
                 {
-                    return null; 
+                    return null!;
                 }
             }
             else
             {
-                return null; 
+                return null!;
             }
         }
 
@@ -307,7 +315,7 @@ namespace BitBeakAPI.Controllers
                     var objResultadoConclusao = await ConcluirNivel(objUsuario.IdUsuario, objRequest.IdTrilha, objRequest.IdNivelTrilha);
                     if (objResultadoConclusao is BadRequestObjectResult)
                     {
-                        return objResultadoConclusao; // Retornar qualquer erro ocorrido na conclusão
+                        return objResultadoConclusao; 
                     }
 
                     // Verificar se todos os níveis da trilha foram concluídos
@@ -317,7 +325,7 @@ namespace BitBeakAPI.Controllers
                         var objResultadoConclusaoTrilha = await ConcluirTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
                         if (objResultadoConclusaoTrilha is BadRequestObjectResult)
                         {
-                            return objResultadoConclusaoTrilha; // Retornar qualquer erro ocorrido na conclusão da trilha
+                            return objResultadoConclusaoTrilha; 
                         }
                     }
 
@@ -332,11 +340,12 @@ namespace BitBeakAPI.Controllers
                 var objProximaQuestao = await ObterProximaQuestao(objRequest.IdTrilha,
                                                                   objRequest.IdNivelTrilha,
                                                                   objRequest.QuestoesRespondidas!,
-                                                                  objRequest.TiposQuestoesRespondidas);
+                                                                  objRequest.TiposQuestoesRespondidas,
+                                                                  objRequest.ContadorAcertos,
+                                                                  objRequest.ContadorErros);
 
                 if (objProximaQuestao is ModelQuestao objDadosQuestao)
                 {
-                    // Retornar a próxima questão para o frontend
                     return Ok(new
                     {
                         Questao = objDadosQuestao,
