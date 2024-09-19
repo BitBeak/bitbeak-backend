@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BitBeakAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd3ed23a9405c01c76fb61a36616537990de300c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+113120b773b453962ba06462920d185b70327463")]
 [assembly: System.Reflection.AssemblyProductAttribute("BitBeakAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BitBeakAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
