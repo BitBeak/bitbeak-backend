@@ -15,7 +15,10 @@
             public DbSet<ModelUsuarioNivelConcluido> UsuarioNiveisConcluidos { get; set; }
             public DbSet<ModelAmizade> Amizades { get; set; }       
             public DbSet<ModelDesafio> Desafios { get; set; }  
-            public DbSet<ModelHistoricoDesafio> HistoricoDesafios { get; set; } 
+            public DbSet<ModelHistoricoDesafio> HistoricoDesafios { get; set; }
+            public DbSet<ModelMissao> Missoes { get; set; }
+            
+            public DbSet<ModelMissaoProgresso> ProgressoMissoes { get; set; }
 
             public BitBeakContext(DbContextOptions<BitBeakContext> options) : base(options)
             {

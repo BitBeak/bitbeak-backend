@@ -35,6 +35,7 @@ builder.Services.AddTransient<EmailService>(provider => new EmailService(
 ));
 
 builder.Services.AddScoped<QuestaoService>();
+builder.Services.AddScoped<MissaoService>();
 
 builder.Services.AddSwaggerGen(c =>
 {

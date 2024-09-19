@@ -19,13 +19,15 @@ namespace BitBeakAPI.Controllers
     {
         private readonly BitBeakContext _context;
         private readonly QuestaoService _questaoService;
+        private readonly MissaoService _missaoService;
         private readonly string _strApiKey; 
 
 
-        public JogoController(BitBeakContext objContext, QuestaoService objQuestaoService)
+        public JogoController(BitBeakContext objContext, QuestaoService objQuestaoService, MissaoService objMissaoService)
         {
             _context = objContext;
             _questaoService = objQuestaoService;
+            _missaoService = objMissaoService;
 
             Env.Load();  // Carrega as variáveis de ambiente do arquivo .env
             _strApiKey = Environment.GetEnvironmentVariable("RAPIDAPI_KEY")!;
@@ -211,7 +213,6 @@ namespace BitBeakAPI.Controllers
         [HttpPost("ResponderQuestao")]
         public async Task<ActionResult> ResponderQuestao(ResponderQuestaoRequest objRequest)
         {
-            // Carregar o usuário existente do banco de dados
             ModelUsuario? objUsuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.IdUsuario == objRequest.IdUsuario);
 
@@ -244,6 +245,10 @@ namespace BitBeakAPI.Controllers
                     if (objVerificarResposta.Acertou)
                     {
                         objRequest.ContadorAcertos++;
+
+                        int intIdMissaoQuestao = await _missaoService.BuscarMissaoAtiva(objRequest.IdUsuario, TipoMissao.Questao);
+
+                        await _missaoService.AtualizarProgressoMissao(objRequest.IdUsuario, intIdMissaoQuestao, TipoMissao.Questao, 1);
                     }
                     else
                     {
@@ -303,7 +308,6 @@ namespace BitBeakAPI.Controllers
 
                     if (objUsuario.ExperienciaUsuario >= objNivelUsuarioAtual.ExperienciaNecessaria)
                     {
-                        // Subir de nível
                         objUsuario.NivelUsuario++;
                         objUsuario.ExperienciaUsuario -= objNivelUsuarioAtual.ExperienciaNecessaria;
                     }
@@ -313,19 +317,34 @@ namespace BitBeakAPI.Controllers
 
                     // Chamar a função para registrar a conclusão do nível
                     var objResultadoConclusao = await ConcluirNivel(objUsuario.IdUsuario, objRequest.IdTrilha, objRequest.IdNivelTrilha);
+
                     if (objResultadoConclusao is BadRequestObjectResult)
                     {
                         return objResultadoConclusao; 
                     }
+                    else
+                    {
+                        int idMissaoNivel = await _missaoService.BuscarMissaoAtiva(objUsuario.IdUsuario, TipoMissao.Nivel);
+
+                        await _missaoService.AtualizarProgressoMissao(objUsuario.IdUsuario, idMissaoNivel, TipoMissao.Nivel, 1);
+                    }
 
                     // Verificar se todos os níveis da trilha foram concluídos
                     bool blnTrilhaConcluida = await VerificarConclusaoTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
+
                     if (blnTrilhaConcluida)
                     {
                         var objResultadoConclusaoTrilha = await ConcluirTrilha(objUsuario.IdUsuario, objRequest.IdTrilha);
+
                         if (objResultadoConclusaoTrilha is BadRequestObjectResult)
                         {
-                            return objResultadoConclusaoTrilha; 
+                            return objResultadoConclusaoTrilha;
+                        }
+                        else
+                        {
+                            int idMissaoTrilha = await _missaoService.BuscarMissaoAtiva(objUsuario.IdUsuario, TipoMissao.Trilha);
+
+                            await _missaoService.AtualizarProgressoMissao(objUsuario.IdUsuario, idMissaoTrilha, TipoMissao.Trilha, 1);
                         }
                     }
 

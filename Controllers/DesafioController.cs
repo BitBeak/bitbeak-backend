@@ -17,12 +17,15 @@ namespace BitBeakAPI.Controllers
     {
         private readonly BitBeakContext _context;
         private readonly QuestaoService _questaoService;
+        private readonly MissaoService _missaoService;
         private readonly string _strApiKey;
 
-        public DesafioController(BitBeakContext context, QuestaoService questaoService)
+        public DesafioController(BitBeakContext context, QuestaoService questaoService, MissaoService objMissaoService)
         {
             _context = context;
             _questaoService = questaoService;
+            _missaoService = objMissaoService;
+
             Env.Load();  // Carrega as variáveis de ambiente do arquivo .env
             _strApiKey = Environment.GetEnvironmentVariable("RAPIDAPI_KEY")!;
         }
@@ -161,6 +164,10 @@ namespace BitBeakAPI.Controllers
                     if (objVerificarResposta.Acertou)
                     {
                         objRequest.ContadorAcertos++;
+
+                        int intIdMissaoQuestao = await _missaoService.BuscarMissaoAtiva(objRequest.IdUsuario, TipoMissao.Questao);
+
+                        await _missaoService.AtualizarProgressoMissao(objRequest.IdUsuario, intIdMissaoQuestao, TipoMissao.Questao, 1);
                     }
                     else
                     {
@@ -244,10 +251,16 @@ namespace BitBeakAPI.Controllers
                             IdVencedor = intIdVencedor
                         };
 
-                        _context.HistoricoDesafios.Add(objHistoricoConfronto);
-                        await _context.SaveChangesAsync();
+                        if (objHistoricoConfronto.IdVencedor == objRequest.IdUsuario)
+                        {
+                            int intIdMissaoDesafio = await _missaoService.BuscarMissaoAtiva(objRequest.IdUsuario, TipoMissao.Desafio);
 
+                            await _missaoService.AtualizarProgressoMissao(objRequest.IdUsuario, intIdMissaoDesafio, TipoMissao.Desafio, 1);
+                        }
+
+                        _context.HistoricoDesafios.Add(objHistoricoConfronto);
                         objDesafio.Finalizado = true;
+
                         await _context.SaveChangesAsync();
 
                         return Ok("Jogo finalizado! O jogador ganhou todas as insígnias.");

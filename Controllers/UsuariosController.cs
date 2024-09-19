@@ -216,11 +216,13 @@ namespace BitBeakAPI.Controllers
                     objUsuario.SenhaCriptografada = Security.Criptografar(objUsuario.Senha);
                 }
 
-                objUsuario.NivelUsuario = 1;
+                objUsuario.NivelUsuario = 1; 
                 objUsuario.CodigoDeAmizade = GerarCodigoDeAmizade();
 
                 _context.Usuarios.Add(objUsuario);
                 await _context.SaveChangesAsync();
+
+                await IniciarMissoesIniciais(objUsuario.IdUsuario);
 
                 return CreatedAtAction(nameof(ListarDadosUsuario), new { intIdUsuario = objUsuario.IdUsuario }, objUsuario);
             }
@@ -381,6 +383,28 @@ namespace BitBeakAPI.Controllers
             return _context.Usuarios.Any(e => e.IdUsuario == intId);
         }
 
+        #endregion
+
+        #region Funções de Apoio
+        private async Task IniciarMissoesIniciais(int intIdUsuario)
+        {
+            var objMissoesIniciais = await _context.Missoes
+                .Where(m => m.Inicial) 
+                .ToListAsync();
+
+            foreach (var objMissao in objMissoesIniciais)
+            {
+                var objMissaoAtiva = new ModelMissaoProgresso
+                {
+                    IdUsuario = intIdUsuario,
+                    IdMissao = objMissao.IdMissao,
+                    ProgressoAtual = 0,
+                    Completa = false
+                };
+                _context.ProgressoMissoes.Add(objMissaoAtiva);
+            }
+            await _context.SaveChangesAsync();
+        }
         #endregion
     }
 }
