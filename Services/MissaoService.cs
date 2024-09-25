@@ -14,44 +14,40 @@ namespace BitBeakAPI.Services
 
         public async Task AtualizarProgressoMissao(int intIdUsuario, int intIdMissao, TipoMissao tipoMissao, int intIncremento)
         {
-            ModelUsuario? objUsuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.IdUsuario == intIdUsuario);
-
-            ModelMissaoProgresso? objMissaoAtiva = await _context.ProgressoMissoes
-               .Include(m => m.Missao)
-               .FirstOrDefaultAsync(m => m.IdUsuario == intIdUsuario && m.IdMissao == intIdMissao && m.Missao.TipoMissao == tipoMissao && !m.Completa);
-
             try
             {
+                var objUsuario = await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.IdUsuario == intIdUsuario);
+
+                var objMissaoAtiva = await _context.ProgressoMissoes
+                    .Include(m => m.Missao)
+                    .FirstOrDefaultAsync(m => m.IdUsuario == intIdUsuario && m.IdMissao == intIdMissao && m.Missao.TipoMissao == tipoMissao && !m.Completa);
+
                 if (objMissaoAtiva != null)
                 {
                     objMissaoAtiva.ProgressoAtual += intIncremento;
+                    _context.ProgressoMissoes.Update(objMissaoAtiva);
+                    await _context.SaveChangesAsync(); 
 
                     if (objMissaoAtiva.ProgressoAtual >= objMissaoAtiva.Missao.Objetivo)
                     {
                         objMissaoAtiva.Completa = true;
 
-                        try
+                        if (objUsuario != null)
                         {
-                            var objMissoes = await _context.Missoes
-                                .FirstOrDefaultAsync(n => n.IdMissao == intIdMissao);
-
-                            objUsuario!.ExperienciaUsuario += objMissoes!.RecompensaExperiencia;
-                            objUsuario!.ExperienciaQuinzenalUsuario += objMissoes!.RecompensaExperiencia;
-                            objUsuario!.Penas += objMissoes!.RecompensaPenas;
-
+                            objUsuario.ExperienciaUsuario += objMissaoAtiva.Missao.RecompensaExperiencia;
+                            objUsuario.ExperienciaQuinzenalUsuario += objMissaoAtiva.Missao.RecompensaExperiencia;
+                            objUsuario.Penas += objMissaoAtiva.Missao.RecompensaPenas;
                             _context.Usuarios.Update(objUsuario);
-                            await _context.SaveChangesAsync();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Error.WriteLine($"Erro ao salvar alterações no banco: {ex.Message}");
-                            throw;
                         }
 
-                        await AtivarProximaMissao(intIdUsuario, tipoMissao);
+                        await _context.SaveChangesAsync(); 
+                        await AtivarProximaMissao(intIdUsuario, tipoMissao);  
                     }
-
+                }
+                else
+                {
+                    throw new InvalidOperationException("Nenhuma missão ativa correspondente encontrada.");
                 }
             }
             catch (Exception ex)
