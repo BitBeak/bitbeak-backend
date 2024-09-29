@@ -83,7 +83,7 @@ namespace BitBeakAPI.Controllers
                 .Include(a => a.Amigo)
                 .Select(a => new
                 {
-                    IdUsuario = a.IdUsuario,
+                    IdUsuario = a.Amigo.IdUsuario,
                     Nome = a.Amigo.Nome,
                     Email = a.Amigo.Email,
                     NivelUsuario = a.Amigo.NivelUsuario
