@@ -119,8 +119,7 @@ namespace BitBeakAPI.Controllers
             var objDesafio = await _context.Desafios
                 .FirstOrDefaultAsync(d => d.IdDesafio == objRequest.IdDesafio);
 
-            // Verificar qual é o nível do jogador atual (Desafiante ou Desafiado)
-            int intJogadorAtualNivel = objDesafio!.DesafianteJogando ? objDesafio.NivelDesafiante : objDesafio.NivelDesafiado;
+           
 
             try
             {
@@ -141,6 +140,9 @@ namespace BitBeakAPI.Controllers
                 {
                     return BadRequest("Não é a sua vez de jogar.");
                 }
+
+                // Verificar qual é o nível do jogador atual (Desafiante ou Desafiado)
+                int intJogadorAtualNivel = objDesafio!.DesafianteJogando ? objDesafio.NivelDesafiante : objDesafio.NivelDesafiado;
 
                 var objRespostaRequest = new VerificarRespostaDesafioRequest
                 {
@@ -621,12 +623,23 @@ namespace BitBeakAPI.Controllers
                 .OrderBy(q => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
-            if (objQuestaoEspecial == null)
+            if (objQuestaoEspecial != null)
+            {
+                var objResultadoDados = await _questaoService.ListarDadosQuestao(objQuestaoEspecial.IdQuestao); 
+
+                if (objResultadoDados != null)
+                {
+                    return Ok(objResultadoDados);  
+                }
+                else
+                {
+                    return NotFound("Não foi possível obter os dados da questão especial.");
+                }
+            }
+            else
             {
                 return NotFound("Nenhuma questão especial encontrada para o nível e trilha especificados.");
             }
-
-            return Ok(objQuestaoEspecial);
         }
         #endregion
 
