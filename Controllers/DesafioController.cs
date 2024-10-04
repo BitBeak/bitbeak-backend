@@ -600,7 +600,9 @@ namespace BitBeakAPI.Controllers
                 return NotFound("Nível não encontrado ou sem questões.");
             }
 
+            // Excluir questões do tipo Desafio
             var objQuestaoAleatoria = objNivelTrilha.Questoes
+                .Where(q => q.Tipo != TipoQuestao.Desafio)
                 .OrderBy(q => Guid.NewGuid())
                 .Select(q => q.IdQuestao)
                 .FirstOrDefault();
