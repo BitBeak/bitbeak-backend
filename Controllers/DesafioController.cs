@@ -118,9 +118,7 @@ namespace BitBeakAPI.Controllers
         {
             var objDesafio = await _context.Desafios
                 .FirstOrDefaultAsync(d => d.IdDesafio == objRequest.IdDesafio);
-
            
-
             try
             {
 
@@ -193,7 +191,7 @@ namespace BitBeakAPI.Controllers
                     }
 
                     // Verificar se é necessário enviar a questão especial para o jogador
-                    if (objRequest.ContadorAcertos == 3)
+                    if (objRequest.ContadorAcertos == 3 && objRequest.ContadorErros == 0)
                     {
                         var objPerguntaEspecialResponse = await ObterQuestaoEspecial(objDesafio.IdTrilha, intJogadorAtualNivel);
 
