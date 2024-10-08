@@ -12,11 +12,8 @@ var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger<Pr
 // Verificar configurações de SMTP
 var smtpServer = builder.Configuration["Smtp:Server"];
 var smtpPort = builder.Configuration["Smtp:Port"];
-var smtpUser = builder.Configuration["Smtp:User"];
-var smtpPass = builder.Configuration["Smtp:Pass"];
-logger.LogInformation($"SMTP Server: {smtpServer}");
-logger.LogInformation($"SMTP Port: {smtpPort}");
-logger.LogInformation($"SMTP User: {smtpUser}");
+string smtpUser = Environment.GetEnvironmentVariable("SMTP_USER")!;
+string smtpPass = Environment.GetEnvironmentVariable("SMTP_PASS")!;
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
